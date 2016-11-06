@@ -1,7 +1,8 @@
-# ${1:Project Name}
+
+#Anime Bot
 TODO: Write a project description
-## Installation
-TODO: Describe the installation process
+## Required packages
+TODO: List the required packages
 ## Usage
 TODO: Write usage instructions
 ## Contributing
