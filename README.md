@@ -3,8 +3,7 @@ TODO: Write a project description
 ##Required packages
 - [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot)
 - [Pybooru](https://github.com/LuqueDaniel/pybooru)
-- Retrying
-- Schedule
+- [Retrying](https://github.com/rholder/retrying)
 
 ##Usage
 TODO: Write usage instructions
