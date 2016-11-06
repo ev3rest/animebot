@@ -1,7 +1,7 @@
 #----------------------------------
 # Developer: Digital Entropy
 # Program: Anime Bot for telegram
-# (c) 2016
+# (c) Digital Entropy 2016
 # License: Proprietary Software
 #-----------------------------------
 from __future__ import unicode_literals
@@ -36,7 +36,7 @@ gc.enable() #Garbage collector
 
 globalarray = {}
 
-superusers=[47571378]
+superusers=[47571378] #@ev3rest
 
 ikeyboard = InlineKeyboardMarkup([[InlineKeyboardButton("Support Me", url='https://patreon.com/ev3rest')], [InlineKeyboardButton("Download", callback_data='Download')], [InlineKeyboardButton("More", callback_data='More')]])
 bkeyboard = ReplyKeyboardMarkup(
