@@ -1,4 +1,4 @@
-#Anime Bot
+#Anime Bot for Telegram
 TODO: Write a project description
 ##Required packages
 - python-telegram-bot
