@@ -14,7 +14,6 @@ from random import randint
 import urllib.request
 from uuid import uuid4
 from time import sleep
-import schedule
 
 import gc
 import requests
