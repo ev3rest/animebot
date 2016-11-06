@@ -6,6 +6,7 @@ branches:
   only:
     - master
 install:
+  - зшз штыефдд requests
   - pip install pybooru
   - pip install python-telegram-bot
   - pip install retrying
