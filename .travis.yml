@@ -1,5 +1,13 @@
 language: python
-rvm:
- - 3.4
-# uncomment and edit the following line if your project needs to run something other than `rake`:
-# script: bundle exec rspec spec
+python:
+  - "3.4"
+  - "3.5"
+branches:
+  only:
+    - master
+install:
+  - pip install pybooru
+  - pip install python-telegram-bot
+  - pip install retrying
+script:
+  - nosetests -v --with-flaky --no-flaky-report --with-coverage --cover-package=telegram/
