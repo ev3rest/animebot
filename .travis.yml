@@ -11,4 +11,4 @@ install:
   - pip install python-telegram-bot
   - pip install retrying
 script:
-  - nosetests -v --with-flaky --no-flaky-report --with-coverage --cover-package=telegram/
+  - python3 animebot.py
