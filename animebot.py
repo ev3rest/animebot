@@ -14,6 +14,7 @@ from random import randint
 import urllib.request
 from uuid import uuid4
 from time import sleep
+import schedule
 
 import gc
 import requests
@@ -35,7 +36,7 @@ gc.enable() #Garbage collector
 
 globalarray = {}
 
-superusers=[47571378] #@ev3rest
+superusers=[47571378]
 
 ikeyboard = InlineKeyboardMarkup([[InlineKeyboardButton("Support Me", url='https://patreon.com/ev3rest')], [InlineKeyboardButton("Download", callback_data='Download')], [InlineKeyboardButton("More", callback_data='More')]])
 bkeyboard = ReplyKeyboardMarkup(
@@ -513,7 +514,7 @@ def feedback(bot, update):
 def ev3rest_start(bot, update):
 	if update.message.from_user.id in superusers:
 		try:
-			os.system("screen -d -m python3 /ev3rest/bots/ev3restbot/main.py")
+			os.system("screen -d -m python3 /ev3rest/bots/ev3restbot/ev3rest.py")
 			bot.sendMessage(update.message.chat_id, "Success", reply_to_message=update.message.message_id)
 		except Exception as e:
 			bot.sendMessage(update.message.chat_id, str(e))
@@ -523,7 +524,7 @@ def ev3rest_start(bot, update):
 def ev3rest_stop(bot, update):
 	if update.message.from_user.id in superusers:
 		try:
-			os.system("pkill -f /ev3rest/bots/ev3restbot/main.py")
+			os.system("pkill -f /ev3rest/bots/ev3restbot/ev3rest.py")
 			bot.sendMessage(update.message.chat_id, "Success", reply_to_message=update.message.message_id)
 		except Exception as e:
 			bot.sendMessage(update.message.chat_id, str(e))
