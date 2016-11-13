@@ -44,6 +44,7 @@ bkeyboard = ReplyKeyboardMarkup(
 			one_time_keyboard=False)
 
 lastcmd = {}
+
 #BLOCK: Commands
 @run_async
 def start(bot, update, **kwargs):
@@ -99,7 +100,7 @@ def anime(bot, update, chat_id=None, chan=None):
 	except:
 		pass
 	if chan !=None:
-		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id, info='Want more? Join ' + chan + '!')
+		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id, info='Want more? Join %s!' % chan) 
 		if update.message != None:
 			botanio(bot, update, message=update.message, uid=chat_id, event_name="/anime")
 		else:
@@ -122,7 +123,7 @@ def hentai(bot, update, chat_id=None, chan=None):
 	except:
 		pass
 	if chan !=None:
-		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id, info='Want more? Join ' + chan + '!')
+		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id, info='Want more? Join %s!' % chan)
 		if update.message != None:
 			botanio(bot, update, message=update.message, uid=chat_id, event_name="/hentai")
 		else:
@@ -145,7 +146,7 @@ def ecchi(bot, update, chat_id=None, chan=None):
 	except:
 		pass
 	if chan !=None:
-		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id, info='Want more? Join ' + chan + '!')
+		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id, info='Want more? Join %s!' % chan)
 		if update.message != None:
 			botanio(bot, update, message=update.message, uid=chat_id, event_name="/ecchi")
 		else:
@@ -168,7 +169,7 @@ def uncensored(bot, update, chat_id=None, chan=None):
 	except:
 		pass
 	if chan !=None:
-		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id, info='Want more? Join ' + chan + '!')
+		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id, info='Want more? Join %s!' % chan)
 		if update.message != None:
 			botanio(bot, update, message=update.message, uid=chat_id, event_name="/uncensored")
 		else:
@@ -191,7 +192,7 @@ def yuri(bot, update, chat_id=None, chan=None):
 	except:
 		pass
 	if chan !=None:
-		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id, info='Want more? Join ' + chan + '!')
+		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id, info='Want more? Join %s!' % chan)
 		if update.message != None:
 			botanio(bot, update, message=update.message, uid=chat_id, event_name="/yuri")
 		else:
@@ -214,7 +215,7 @@ def loli(bot, update, chat_id=None, chan=None):
 	except:
 		pass
 	if chan !=None:
-		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id, info='Want more? Join ' + chan + '!')
+		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id, info='Want more? Join %s!' % chan)
 		if update.message != None:
 			botanio(bot, update, message=update.message, uid=chat_id, event_name="/loli")
 		else:
@@ -238,7 +239,7 @@ def neko(bot, update, chat_id=None, chan=None):
 	except:
 		pass
 	if chan !=None:
-		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id, info='Want more? Join ' + chan + '!')
+		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id, info='Want more? Join %s!' % chan)
 		if update.message != None:
 			botanio(bot, update, message=update.message, uid=chat_id, event_name="/anime")
 		else:
@@ -262,7 +263,7 @@ def wallpaper(bot, update, chat_id=None, chan=None):
 	except:
 		pass
 	if chan !=None:
-		wallparser(bot, update, tags=tags, pages=pages, chat_id=chat_id, info='Want more? Join ' + chan + '!')
+		wallparser(bot, update, tags=tags, pages=pages, chat_id=chat_id, info='Want more? Join %s!' % chan)
 		if update.message != None:
 			botanio(bot, update, message=update.message, uid=chat_id, event_name="/wallpaper")
 		else:
@@ -328,18 +329,22 @@ def parser(bot, update, tags, pages, chat_id, info=None): #Usual parser for usua
 def noparser(bot, update, tags, pages, chat_id, info=None): #Parser without retry loop (to prevent infinte exception)
 	bot.sendChatAction(chat_id, "upload_photo")
 	client = Pybooru('Yandere')
+	randomint = randint(1000, 10000000)
 	try:
 		randompage = randint(1, int(pages))
 		posts = client.posts_list(tags=str(tags), limit=1, page=str(randompage))
 		for post in posts:
+			urllib.request.urlretrieve(post['file_url'], "tmp/anime_bot_" + str(randomint) + ".jpg")
 			tmp_data = "Uploader: " + post['author']  + "\nID: " + str(post['id'])
 			globalarray[chat_id] = dict(data=tmp_data)
-		photo = post['file_url']
+		photo = open('tmp/anime_bot_' + str(randomint) + ".jpg", 'rb')
 		reply_markup = ikeyboard
 		if info != None:
 			bot.sendPhoto(chat_id, photo, reply_markup=reply_markup, caption=info + '\n' + tmp_data)
+			os.remove('tmp/anime_bot_' + str(randomint) + ".jpg")
 		else:
 			bot.sendPhoto(chat_id, photo, reply_markup=reply_markup, caption=tmp_data)
+			os.remove('tmp/anime_bot_' + str(randomint) + ".jpg")
 	except Exception as e:
 		print(e)
 @retry
@@ -370,11 +375,9 @@ def callback(bot, update): #Callback handler
     if query.data == "Download":
     	bot.editMessageReplyMarkup(query.message.chat_id, query.message.message_id)
     	try:
-    		{47571378: {'data': 'Uploader: Twinsenzw\nID: 236396'}}
     		image_id = str(globalarray[query.message.chat_id]).split("ID: ", 1)[1]
     		image_id = image_id.split("\'", 1)[0]
-    		tags = image_id
-    		idd(bot, update, chat_id=query.message.chat_id, tags=tags)
+    		idd(bot, update, chat_id=query.message.chat_id, tags=image_id)
     	except Exception as e:
     		print(e)
     elif query.data == "More":
@@ -425,50 +428,74 @@ def inline(bot, update): #Inline Handler & Parser
 	query = update.inline_query.query
 	if query is None:
 		query = 'rating:s'
-	randomtime = randint(1000, 10000000)
-	client = Pybooru('Yandere')
-	posts = client.posts_list(tags=query, limit=40)
-	lposts = len(posts)
-	inlinequery = list()
-	for post in posts:
-		inlinequery.append(InlineQueryResultPhoto(
-				type='photo',
-				id=uuid4(),
-				photo_url=post['file_url'],
-				photo_width=post['preview_width']*6,
-				photo_height=post['preview_height']*6,
-				thumb_url=post['preview_url']),)
-	reply_markup = InlineKeyboardMarkup([InlineKeyboardButton("More", callback_data='More')])
-	bot.answerInlineQuery(update.inline_query.id, results=inlinequery, switch_pm_text="Help", switch_pm_parameter="ihelp")
-	inlinequery.clear()
+		client = Pybooru('Yandere')
+		posts = client.posts_list(tags=query, limit=50)
+		lposts = len(posts)
+		inlinequery = list()
+		reply_markup = InlineKeyboardMarkup([InlineKeyboardButton("More", callback_data='More')])
+		for post in posts:
+			inlinequery.append(InlineQueryResultPhoto(
+					type='photo',
+					id=uuid4(),
+					photo_url=post['file_url'],
+					photo_width=post['preview_width']*6,
+					photo_height=post['preview_height']*6,
+					#reply_markup=reply_markup,
+					thumb_url=post['preview_url']),)
+		bot.answerInlineQuery(update.inline_query.id, results=inlinequery, switch_pm_text="Help", switch_pm_parameter="ihelp")
+		inlinequery.clear()
+	else:
+		client = Pybooru('Yandere')
+		posts = client.posts_list(tags=query, limit=50)
+		lposts = len(posts)
+		inlinequery = list()
+		reply_markup = InlineKeyboardMarkup([InlineKeyboardButton("More", callback_data='More')])
+		for post in posts:
+			inlinequery.append(InlineQueryResultPhoto(
+					type='photo',
+					id=uuid4(),
+					photo_url=post['file_url'],
+					photo_width=post['preview_width']*6,
+					photo_height=post['preview_height']*6,
+					#reply_markup=reply_markup,
+					thumb_url=post['preview_url']),)
+		bot.answerInlineQuery(update.inline_query.id, results=inlinequery, switch_pm_text="Help", switch_pm_parameter="ihelp")
+		inlinequery.clear()
 
+	
 @run_async
 def idd(bot, update, tags=None, chat_id=None):
+	randomint = randint(1000, 10000000)
 	try:
+		bot.sendChatAction(chat_id, "upload_document")
 		tags = update.message.text.split(' ', 1)[1]
 		chat_id = update.message.chat_id
 		try:
 			client = Pybooru('Yandere')
 			posts = client.posts_list(tags="id:"+str(tags), limit=1)
 			for post in posts:
+				urllib.request.urlretrieve(post['file_url'], "tmp/anime_bot_" + str(randomint) + ".jpg")
 				tmp_data = "Uploader: " + post['author']  + "\nID: " + str(post['id'])
 				globalarray[chat_id] = dict(data=tmp_data)
-			photo = post ['file_url']
+			photo = open('tmp/anime_bot_' + str(randomint) + ".jpg", 'rb')
 			reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("More", callback_data='More')]])
 			bot.sendDocument(chat_id, photo, reply_markup=reply_markup)
+			os.remove('tmp/anime_bot_' + str(randomint) + ".jpg")
 		except Exception as e:
 			print(e)
 	except:
-		bot.sendChatAction(chat_id, "upload_photo")
+		bot.sendChatAction(chat_id, "upload_document")
 		client = Pybooru('Yandere')
 		try:
 			posts = client.posts_list(tags="id:"+str(tags), limit=1)
 			for post in posts:
+				urllib.request.urlretrieve(post['file_url'], "tmp/anime_bot_" + str(randomint) + ".jpg")
 				tmp_data = "Uploader: " + post['author']  + "\nID: " + str(post['id'])
 				globalarray[chat_id] = dict(data=tmp_data)
-			photo = post ['file_url']
+			photo = open('tmp/anime_bot_' + str(randomint) + ".jpg", 'rb')
 			reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("More", callback_data='More')]])
 			bot.sendDocument(chat_id, photo, reply_markup=reply_markup)
+			os.remove('tmp/anime_bot_' + str(randomint) + ".jpg")
 		except Exception as e:
 			print(e)
 
@@ -562,6 +589,24 @@ def clear(bot, update):
 	else:
 		pass
 
+@run_async
+def mes(bot, update):
+	if update.message.from_user.id in superusers:
+		try:
+			s = update.message.text
+			raw_text = s.split(' ', 1)[1]
+			cid = raw_text.split(' ', 1)[0]
+			text = raw_text.split(' ', 1)[1]
+			try:
+				bot.sendMessage(cid, text)
+				bot.sendMessage(superusers[1], "Success")
+			except:
+				bot.sendMessage(superusers[1], "Error")
+		except Exception as e:
+			print(e)
+			bot.sendMessage(superusers[1], e)
+
+
 def error(bot, update, error):
 	logging.warning('Update "%s" caused error "%s"' % (update, error))
 
@@ -576,7 +621,7 @@ def botanio(bot, update, message, event_name, uid):
 		print(e)
 
 def main():
-	token = "106653739:AAFuxsEk-hmPL-xIMjKE6wHwimilJ97xMf4"
+	token = "106653739:AAF0TdCoxF3qpfU4RrBJbz6lJFCEMDNAn94"
 	updater = Updater(token, workers=20)
 
 	updater.dispatcher.add_handler(CommandHandler('start', start))
@@ -606,6 +651,7 @@ def main():
 	updater.dispatcher.add_handler(CommandHandler("mustart", music_start))
 	updater.dispatcher.add_handler(CommandHandler("mustop", music_stop))
 	updater.dispatcher.add_handler(CommandHandler("clear", clear))
+	updater.dispatcher.add_handler(CommandHandler("mes", mes))
 
 	updater.dispatcher.add_handler(CallbackQueryHandler(callback))
 	updater.dispatcher.add_handler(MessageHandler(Filters.text, text))
