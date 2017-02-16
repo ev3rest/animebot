@@ -6,7 +6,14 @@ TODO: Write a project description
 - [Retrying](https://github.com/rholder/retrying)
 
 ##Usage
-TODO: Write usage instructions
+/anime — Anime Pctures
+/hentai — Hentai Pictures
+/ecchi - Ecchi Pictures
+/loli — Loli Pictures
+/yuri - Yuri Pictures
+/uncensored — Uncensored Pictures
+
+/info — User info
 ## Donate
 You can donate on https://patreon.com/ev3rest
 ##Credits
