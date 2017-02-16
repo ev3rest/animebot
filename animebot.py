@@ -1,7 +1,7 @@
 #----------------------------------
 # Developer: Digital Entropy
 # Program: Anime Bot for telegram
-# (c) Digital Entropy 2016
+# (c) Digital Entropy 2017
 # License: Proprietary Software
 #-----------------------------------
 from __future__ import unicode_literals
