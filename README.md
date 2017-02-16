@@ -1,5 +1,5 @@
 # Anime Bot for Telegram
-Telegram-based bot. Uses Danbooru and Moebooru API to parse images.
+Telegram-based bot. Uses **Danbooru** and **Moebooru** API to parse images.
 ## Required packages
 - [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot)
 - [Pybooru](https://github.com/LuqueDaniel/pybooru)
