@@ -31,7 +31,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - '
 						   '%(message)s',
 					level=logging.WARNING)
 
-botan_token = '7oTjSCbwN:jplWuB34ASFa-3VIiLSg8m'
+botan_token = 'token'
 gc.enable() #Garbage collector
 
 globalarray = {}
