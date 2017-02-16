@@ -22,6 +22,10 @@ Telegram-based bot. Uses **Danbooru** and **Moebooru** API to parse images.
 
 
 /info — User info
+
+## Contribution
+Contributions via pull request are highly appreciated. 
+
 ## Donate
 You can donate on https://patreon.com/ev3rest or https://paypal.me/ev3rest
 ## Credits
