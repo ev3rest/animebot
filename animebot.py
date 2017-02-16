@@ -58,7 +58,7 @@ def start(bot, update, **kwargs):
 		except Exception as e:
 			try:
 				reply_markup = bkeyboard
-				photohi = open("/ev3rest/bots/animebot/sys/girl.gif", 'rb')
+				photohi = open("sys/girl.gif", 'rb')
 				bot.sendDocument(update.message.chat_id, photohi, caption="Hey there!\nMy name is @anime_bot! I am your personal assistant in the anime world!\n\nUse the keyboard below to navigate the menu.", reply_markup=reply_markup)
 			except Exception as e:
 				print (e)
@@ -67,7 +67,7 @@ def start(bot, update, **kwargs):
 def help(bot, update, **kwargs):
 	try:
 		reply_markup = bkeyboard
-		photohi = open("/ev3rest/bots/animebot/sys/girl.gif", 'rb')
+		photohi = open("sys/girl.gif", 'rb')
 		bot.sendDocument(update.message.chat_id, photohi, caption="Hey there!\nMy name is @anime_bot! I am your personal assistant in the anime world!\n\nUse the keyboard below to navigate the menu.", reply_markup=reply_markup)
 	except Exception as e:
 		print (e)
