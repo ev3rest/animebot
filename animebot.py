@@ -538,58 +538,6 @@ def feedback(bot, update):
 #BLOCK: System
 
 @run_async
-def ev3rest_start(bot, update):
-	if update.message.from_user.id in superusers:
-		try:
-			os.system("screen -d -m python3 /ev3rest/bots/ev3restbot/ev3rest.py")
-			bot.sendMessage(update.message.chat_id, "Success", reply_to_message=update.message.message_id)
-		except Exception as e:
-			bot.sendMessage(update.message.chat_id, str(e))
-	else:
-		pass
-@run_async
-def ev3rest_stop(bot, update):
-	if update.message.from_user.id in superusers:
-		try:
-			os.system("pkill -f /ev3rest/bots/ev3restbot/ev3rest.py")
-			bot.sendMessage(update.message.chat_id, "Success", reply_to_message=update.message.message_id)
-		except Exception as e:
-			bot.sendMessage(update.message.chat_id, str(e))
-	else:
-		pass
-@run_async
-def music_start(bot, update):
-	if update.message.from_user.id in superusers:
-		try:
-			os.system("screen -d -m python3 /ev3rest/bots/musicavebot/music.py")
-			bot.sendMessage(update.message.chat_id, "Success", reply_to_message=update.message.message_id)
-		except Exception as e:
-			bot.sendMessage(update.message.chat_id, str(e))
-	else:
-		pass
-@run_async
-def music_stop(bot, update):
-	if update.message.from_user.id in superusers:
-		try:
-			os.system("pkill -f /ev3rest/bots/musicavebot/music.py")
-			bot.sendMessage(update.message.chat_id, "Success", reply_to_message=update.message.message_id)
-		except Exception as e:
-			bot.sendMessage(update.message.chat_id, str(e))
-	else:
-		pass
-
-@run_async
-def clear(bot, update):
-	if update.message.from_user.id in superusers:
-		try:
-			os.system("echo 3 > /proc/sys/vm/drop_caches")
-			bot.sendMessage(update.message.chat_id, "Success", reply_to_message=update.message.message_id)
-		except Exception as e:
-			bot.sendMessage(update.message.chat_id, str(e))
-	else:
-		pass
-
-@run_async
 def mes(bot, update):
 	if update.message.from_user.id in superusers:
 		try:
@@ -646,11 +594,6 @@ def main():
 	updater.dispatcher.add_handler(CommandHandler('su', su))
 	updater.dispatcher.add_handler(CommandHandler('feedback', feedback))
 
-	updater.dispatcher.add_handler(CommandHandler("ev3start", ev3rest_start))
-	updater.dispatcher.add_handler(CommandHandler("ev3stop", ev3rest_stop))
-	updater.dispatcher.add_handler(CommandHandler("mustart", music_start))
-	updater.dispatcher.add_handler(CommandHandler("mustop", music_stop))
-	updater.dispatcher.add_handler(CommandHandler("clear", clear))
 	updater.dispatcher.add_handler(CommandHandler("mes", mes))
 
 	updater.dispatcher.add_handler(CallbackQueryHandler(callback))
