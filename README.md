@@ -22,7 +22,7 @@ Telegram-based bot. Uses Danbooru and Moebooru API to parse images.
 
 /info — User info
 ## Donate
-You can donate on https://patreon.com/ev3rest
+You can donate on https://patreon.com/ev3rest or https://paypal.me/ev3rest
 ##Credits
 Developer: [@ev3rest](https://telegram.me/ev3rest)
 Helper: [@disinterpreter](https://telegram.me/disinterpreter)
