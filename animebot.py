@@ -621,7 +621,7 @@ def botanio(bot, update, message, event_name, uid):
 		print(e)
 
 def main():
-	token = "106653739:AAF0TdCoxF3qpfU4RrBJbz6lJFCEMDNAn94"
+	token = "TOKEN"
 	updater = Updater(token, workers=20)
 
 	updater.dispatcher.add_handler(CommandHandler('start', start))
