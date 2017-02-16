@@ -7,11 +7,18 @@ TODO: Write a project description
 
 ##Usage
 /anime — Anime Pctures
+
 /hentai — Hentai Pictures
+
 /ecchi - Ecchi Pictures
+
 /loli — Loli Pictures
+
 /yuri - Yuri Pictures
+
 /uncensored — Uncensored Pictures
+
+
 
 /info — User info
 ## Donate
