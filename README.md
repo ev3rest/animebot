@@ -4,6 +4,7 @@ Telegram-based bot. Uses Danbooru and Moebooru API to parse images.
 - [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot)
 - [Pybooru](https://github.com/LuqueDaniel/pybooru)
 - [Retrying](https://github.com/rholder/retrying)
+- [Botan](https://github.com/botanio)
 
 ##Usage
 /anime — Anime Pctures
