@@ -29,10 +29,10 @@ Developer: [@ev3rest](https://t.me/ev3rest)
 Helper: [@disinterpreter](https://t.me/disinterpreter)
 
 ## Meow
-- Anime Bot: [@anime_bot](https://t.me/anime_bot)
+  Anime Bot: [@anime_bot](https://t.me/anime_bot)
 
-- Anime Group[EN]: [@anime_en](https://t.me/anime_en)
+  Anime Group[EN]: [@anime_en](https://t.me/anime_en)
 
-- Anime Group[RU]: [@anime_ru](https://t.me/anime_ru)
+  Anime Group[RU]: [@anime_ru](https://t.me/anime_ru)
 
-- Anime Group[DE]: [@anime_de](https://t.me/anime_de)
+  Anime Group[DE]: [@anime_de](https://t.me/anime_de)
