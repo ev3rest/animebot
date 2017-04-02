@@ -23,7 +23,6 @@ import gc
 import requests
 import datetime
 import json
-from pymongo import MongoClient
 from pybooru import Moebooru, Danbooru
 from retrying import retry
 from telegram import Emoji, ForceReply, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, ReplyKeyboardMarkup, KeyboardButton, InlineQueryResultArticle, InlineQueryResultPhoto
