@@ -11,27 +11,8 @@ Telegram-based bot. Uses **Danbooru** and **Moebooru** API to parse images.
 
 `pip install python-telegram-bot --upgrade`
 
-`pip install retrying --upgrade`
-
 **Run:**
 `python3 animebot.py`
-
-## Usage
-/anime — Anime Pctures
-
-/hentai — Hentai Pictures
-
-/ecchi - Ecchi Pictures
-
-/loli — Loli Pictures
-
-/yuri - Yuri Pictures
-
-/uncensored — Uncensored Pictures
-
-
-
-/info — User info
 
 ## Contribution
 Contributions via pull request are highly appreciated. 
