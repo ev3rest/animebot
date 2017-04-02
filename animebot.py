@@ -1,28 +1,31 @@
 #----------------------------------
 # Developer: Digital Entropy
-# Program: Anime Bot for telegram
+# Program: Anime Bot 3.0 for Telegram
 # (c) Digital Entropy 2017
 # License: Proprietary Software
 #-----------------------------------
 from __future__ import unicode_literals
 import logging
-
 import botan
 import os
 import time
+import traceback
 from random import randint
 import urllib.request
 from uuid import uuid4
 from time import sleep
 import schedule
-
+from pathlib import Path
+import random
+import json
+from collections import defaultdict
 import gc
 import requests
 import datetime
-
-from pybooru import Pybooru
+import json
+from pymongo import MongoClient
+from pybooru import Moebooru, Danbooru
 from retrying import retry
-
 from telegram import Emoji, ForceReply, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, ReplyKeyboardMarkup, KeyboardButton, InlineQueryResultArticle, InlineQueryResultPhoto
 from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, InlineQueryHandler, Filters
 from telegram.ext.dispatcher import run_async
@@ -31,491 +34,215 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - '
 						   '%(message)s',
 					level=logging.WARNING)
 
-botan_token = 'token'
 gc.enable() #Garbage collector
-
-globalarray = {}
 
 superusers=[47571378]
 
-ikeyboard = InlineKeyboardMarkup([[InlineKeyboardButton("Support Me", url='https://patreon.com/ev3rest')], [InlineKeyboardButton("Download", callback_data='Download')], [InlineKeyboardButton("More", callback_data='More')]])
+#ikeyboard = InlineKeyboardMarkup([[InlineKeyboardButton("Support Me", url='https://patreon.com/ev3rest')], [InlineKeyboardButton("More", callback_data='More')]])
 bkeyboard = ReplyKeyboardMarkup(
-			[[KeyboardButton("Anime"), KeyboardButton("Ecchi")], [KeyboardButton("Hentai (18+)"), KeyboardButton("Uncensored (18+)")], [KeyboardButton("Yuri (18+)"), KeyboardButton("Loli (18+)"), KeyboardButton("Neko")], [KeyboardButton("Wallpaper")]], 
+			[[KeyboardButton("/anime"), KeyboardButton("/ecchi")], [KeyboardButton("/hentai (18+)"), KeyboardButton("/uncensored (18+)")], [KeyboardButton("/yuri (18+)"), KeyboardButton("/loli (18+)"), KeyboardButton("/neko")], [KeyboardButton("/wallpaper")]], 
 			one_time_keyboard=False)
 
-lastcmd = {}
+items = ['anime', 'hentai', 'loli', 'yuri', 'ecchi', 'neko', 'uncensored']
 
-#BLOCK: Commands
+
+#VARIABLES
+
+lastcmd = {}
+x = {'1':{'url':[], 'id':[]}, '2':{'url':[], 'id':[]}, '3':{'url':[], 'id':[]}, '4':{'url':[], 'id':[]}, '5':{'url':[], 'id':[]}, '6':{'url':[], 'id':[]}, '7':{'url':[], 'id':[]}, '8':{'url':[], 'id':[]}, '9':{'url':[], 'id':[]}}
+d = {'1': {'data': '', 'url': ''}, '2': {'data': '', 'url': ''}, '3': {'data': '', 'url': ''}, '4': {'data': '', 'url': ''}, '5': {'data': '', 'url': ''}, '6': {'data': '', 'url': ''}, '7': {'data': '', 'url': ''}, '8': {'data': '', 'url': ''}, '9': {'data': '', 'url': ''}}
+parse_data = {'commands':['/anime', '/hentai', '/loli', '/yuri', '/ecchi', '/neko', '/uncensored', '/gif'], 'tags':['rating:s', 'rating:e', 'loli', 'yuri', 'rating:q', 'cat_ears', 'uncensored', 'animated_gif'], 'ch_id': ['1', '2', '3', '4', '5', '6', '7', '8'], 'chan':['@anime_channel', '@hentai_channel', '@channel_loli', '@yuri_channel', '@ecchi_channel', '@anime_channel', '@uncensored_channel', '@anime_channel']}
+
+#TOKENS
+
+
+bot_token = 'token'
+
+botan_token = 'token'
+
+#CODE
+
 @run_async
-def start(bot, update, **kwargs):
+def start(bot, update):
 	s = update.message.text
 	if "ihelp" in s:
 		ihelp(bot, update)
 	else:
 		try:
 			s = s.split(' ', 1)[1]
-			idd(bot, update, chat_id=update.message.chat_id, tags=s)
+			idd(bot, update, chat_id=update.message.chat_id, tags='id:' + s)
 		except Exception as e:
 			try:
-				reply_markup = bkeyboard
-				photohi = open("sys/girl.gif", 'rb')
-				bot.sendDocument(update.message.chat_id, photohi, caption="Hey there!\nMy name is @anime_bot! I am your personal assistant in the anime world!\n\nUse the keyboard below to navigate the menu.", reply_markup=reply_markup)
-			except Exception as e:
-				print (e)
+				bot.sendMessage(update.message.chat_id, "Hey there!\nMy name is @anime_bot! I am your personal assistant in the anime world!\n\nUse the keyboard below to navigate the menu.\n\nFeeback: /feedback", reply_markup=bkeyboard)
+			except Exception:
+				traceback.print_exc()
 
 @run_async
-def help(bot, update, **kwargs):
-	try:
-		reply_markup = bkeyboard
-		photohi = open("sys/girl.gif", 'rb')
-		bot.sendDocument(update.message.chat_id, photohi, caption="Hey there!\nMy name is @anime_bot! I am your personal assistant in the anime world!\n\nUse the keyboard below to navigate the menu.", reply_markup=reply_markup)
-	except Exception as e:
-		print (e)
-
-@run_async
-def ihelp(bot, update, **kwargs): #Inline help
-	try:
-		video = open("sys/inline.mp4", 'rb')
-		bot.sendDocument(update.message.chat_id, video, parse_mode=ParseMode.MARKDOWN)
-		sleep(1)
-		bot.sendMessage(update.message.chat_id, 
-'''
-*Inline Usage:*
-@anime\_bot <tag>
-
-_Example:_
-`@anime_bot kantai_collection`
-''', parse_mode=ParseMode.MARKDOWN)
-	except Exception as e:
-		print (e)
-
-@run_async
-def anime(bot, update, chat_id=None, chan=None):
-	tags = "rating:s"
-	pages = "177840"
-	if chat_id == None:
-		chat_id = update.message.chat_id
-	try:
-		lastcmd[update.message.chat_id]="/anime"
-	except:
-		pass
-	if chan !=None:
-		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id, info='Want more? Join %s!' % chan) 
-		if update.message != None:
-			botanio(bot, update, message=update.message, uid=chat_id, event_name="/anime")
-		else:
-			botanio(bot, update, message = None, uid=chat_id, event_name="/anime")
+def commands(bot, update, chat_id=None, chan=None, data=None):
+	if update.message == None:
+		source = update.callback_query.message
+		c_type='callback'
 	else:
-
-		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id)
-		if update.message != None:
-			botanio(bot, update, message=update.message, uid=chat_id, event_name="/anime")
-		else:
-			botanio(bot, update, message = None, uid=chat_id, event_name="/anime")
-@run_async
-def hentai(bot, update, chat_id=None, chan=None):
-	tags = "rating:e"
-	pages = "28280"
-	if chat_id == None:
-		chat_id = update.message.chat_id
-	try:
-		lastcmd[update.message.chat_id]="/hentai"
-	except:
-		pass
-	if chan !=None:
-		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id, info='Want more? Join %s!' % chan)
-		if update.message != None:
-			botanio(bot, update, message=update.message, uid=chat_id, event_name="/hentai")
-		else:
-			botanio(bot, update, message = None, uid=chat_id, event_name="/hentai")
-	else:
-
-		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id)
-		if update.message != None:
-			botanio(bot, update, message=update.message, uid=chat_id, event_name="/hentai")
-		else:
-			botanio(bot, update, message = None, uid=chat_id, event_name="/hentai")
-@run_async
-def ecchi(bot, update, chat_id=None, chan=None):
-	tags = "rating:q"
-	pages = "105600"
-	if chat_id == None:
-		chat_id = update.message.chat_id
-	try:
-		lastcmd[update.message.chat_id]="/ecchi"
-	except:
-		pass
-	if chan !=None:
-		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id, info='Want more? Join %s!' % chan)
-		if update.message != None:
-			botanio(bot, update, message=update.message, uid=chat_id, event_name="/ecchi")
-		else:
-			botanio(bot, update, message = None, uid=chat_id, event_name="/ecchi")
-	else:
-
-		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id)
-		if update.message != None:
-			botanio(bot, update, message=update.message, uid=chat_id, event_name="/ecchi")
-		else:
-			botanio(bot, update, message = None, uid=chat_id, event_name="/ecchi")
-@run_async
-def uncensored(bot, update, chat_id=None, chan=None):
-	tags = "uncensored"
-	pages = "4080"
-	if chat_id == None:
-		chat_id = update.message.chat_id
-	try:
-		lastcmd[update.message.chat_id]="/uncensored"
-	except:
-		pass
-	if chan !=None:
-		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id, info='Want more? Join %s!' % chan)
-		if update.message != None:
-			botanio(bot, update, message=update.message, uid=chat_id, event_name="/uncensored")
-		else:
-			botanio(bot, update, message = None, uid=chat_id, event_name="/uncensored")
-	else:
-
-		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id)
-		if update.message != None:
-			botanio(bot, update, message=update.message, uid=chat_id, event_name="/uncensored")
-		else:
-			botanio(bot, update, message = None, uid=chat_id, event_name="/uncensored")
-@run_async
-def yuri(bot, update, chat_id=None, chan=None):
-	tags = "yuri"
-	pages = "4880"
-	if chat_id == None:
-		chat_id = update.message.chat_id
-	try:
-		lastcmd[update.message.chat_id]="/yuri"
-	except:
-		pass
-	if chan !=None:
-		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id, info='Want more? Join %s!' % chan)
-		if update.message != None:
-			botanio(bot, update, message=update.message, uid=chat_id, event_name="/yuri")
-		else:
-			botanio(bot, update, message = None, uid=chat_id, event_name="/yuri")
-	else:
-
-		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id)
-		if update.message != None:
-			botanio(bot, update, message=update.message, uid=chat_id, event_name="/yuri")
-		else:
-			botanio(bot, update, message = None, uid=chat_id, event_name="/yuri")
-@run_async
-def loli(bot, update, chat_id=None, chan=None):
-	tags = "loli"
-	pages = "14480"
-	if chat_id == None:
-		chat_id = update.message.chat_id
-	try:
-		lastcmd[update.message.chat_id]="/loli"
-	except:
-		pass
-	if chan !=None:
-		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id, info='Want more? Join %s!' % chan)
-		if update.message != None:
-			botanio(bot, update, message=update.message, uid=chat_id, event_name="/loli")
-		else:
-			botanio(bot, update, message = None, uid=chat_id, event_name="/loli")
-	else:
-
-		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id)
-		if update.message != None:
-			botanio(bot, update, message=update.message, uid=chat_id, event_name="/loli")
-		else:
-			botanio(bot, update, message = None, uid=chat_id, event_name="/loli")
-
-@run_async
-def neko(bot, update, chat_id=None, chan=None):
-	tags = "animal_ears"
-	pages = "20720"
-	if chat_id == None:
-		chat_id = update.message.chat_id
-	try:
-		lastcmd[update.message.chat_id]="/neko"
-	except:
-		pass
-	if chan !=None:
-		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id, info='Want more? Join %s!' % chan)
-		if update.message != None:
-			botanio(bot, update, message=update.message, uid=chat_id, event_name="/anime")
-		else:
-			botanio(bot, update, message = None, uid=chat_id, event_name="/anime")
-	else:
-
-		parser(bot, update, tags=tags, pages=pages, chat_id=chat_id)
-		if update.message != None:
-			botanio(bot, update, message=update.message, uid=chat_id, event_name="/neko")
-		else:
-			botanio(bot, update, message = None, uid=chat_id, event_name="/neko")
-
-@run_async
-def wallpaper(bot, update, chat_id=None, chan=None):
-	tags = "width:2560 height:1440 rating:s"
-	pages = "100"
-	if chat_id == None:
-		chat_id = update.message.chat_id
-	try:
-		lastcmd[update.message.chat_id]="/wallpaper"
-	except:
-		pass
-	if chan !=None:
-		wallparser(bot, update, tags=tags, pages=pages, chat_id=chat_id, info='Want more? Join %s!' % chan)
-		if update.message != None:
-			botanio(bot, update, message=update.message, uid=chat_id, event_name="/wallpaper")
-		else:
-			botanio(bot, update, message = None, uid=chat_id, event_name="/wallpaper")
-	else:
-
-		wallparser(bot, update, tags=tags, pages=pages, chat_id=chat_id)
-		if update.message != None:
-			botanio(bot, update, message=update.message, uid=chat_id, event_name="/wallpaper")
-		else:
-			botanio(bot, update, message = None, uid=chat_id, event_name="/wallpaper")
-
-### END
-
-@run_async
-def tag(bot, update, chat_id=None):
-		if chat_id == None:
-			chat_id = update.message.chat_id
-		else:
-			pass
+		source=update.message
+		c_type='command'
+	chat_id = source.chat_id
+	if data == None:
+		data = update.message.text
 		try:
-			tags = update.message.text.split(' ', 1)[1]
-		except Exception as e:
-			try:
-				tags = lastcmd[update.callback_query.message.chat_id].split(' ', 1)[1]
-			except:
-				bot.sendMessage(chat_id, "Please, use `/tag <tag>` instead.", parse_mode=ParseMode.MARKDOWN)
-		pages = "30"
-
-		try:
-			lastcmd[update.message.chat_id]=update.message.text
-		except Exception as e:
+			data = data.split(' ', 1)[0]
+		except:
 			pass
-		noparser(bot, update, tags=tags, pages=pages, chat_id=chat_id)
-		if update.message != None:
-			botanio(bot, update, message=update.message, uid=chat_id, event_name="/tag")
-		else:
-			botanio(bot, update, message = None, uid=chat_id, event_name="/tag")
+	c_id = parse_data['commands'].index(data)
 
-@run_async
-@retry
-def parser(bot, update, tags, pages, chat_id, info=None): #Usual parser for usual commands
-	bot.sendChatAction(chat_id, "upload_photo")
-	client = Pybooru('Yandere')
-	try:
-		randompage = randint(1, int(pages))
-		posts = client.posts_list(tags=str(tags), limit=1, page=str(randompage))
-		for post in posts:
-			tmp_data = "Uploader: " + post['author']  + "\nID: " + str(post['id'])
-			globalarray[chat_id] = dict(data=tmp_data)
-		photo = post['file_url']
-		reply_markup = ikeyboard
-		if info != None:
-			bot.sendPhoto(chat_id, photo, reply_markup=reply_markup, caption=info + '\n' + tmp_data)
-		else:
-			bot.sendPhoto(chat_id, photo, reply_markup=reply_markup, caption=tmp_data)
-	except Exception as e:
-		print(e)
-		print("Retrying...")
-		print (parser(bot, update, tags, pages, chat_id))
+	lastcmd[chat_id] = parse_data['commands'][c_id]
+	ch_id = parse_data['ch_id'][c_id]
 
-@run_async
-def noparser(bot, update, tags, pages, chat_id, info=None): #Parser without retry loop (to prevent infinte exception)
-	bot.sendChatAction(chat_id, "upload_photo")
-	client = Pybooru('Yandere')
-	randomint = randint(1000, 10000000)
-	try:
-		randompage = randint(1, int(pages))
-		posts = client.posts_list(tags=str(tags), limit=1, page=str(randompage))
-		for post in posts:
-			urllib.request.urlretrieve(post['file_url'], "tmp/anime_bot_" + str(randomint) + ".jpg")
-			tmp_data = "Uploader: " + post['author']  + "\nID: " + str(post['id'])
-			globalarray[chat_id] = dict(data=tmp_data)
-		photo = open('tmp/anime_bot_' + str(randomint) + ".jpg", 'rb')
-		reply_markup = ikeyboard
-		if info != None:
-			bot.sendPhoto(chat_id, photo, reply_markup=reply_markup, caption=info + '\n' + tmp_data)
-			os.remove('tmp/anime_bot_' + str(randomint) + ".jpg")
-		else:
-			bot.sendPhoto(chat_id, photo, reply_markup=reply_markup, caption=tmp_data)
-			os.remove('tmp/anime_bot_' + str(randomint) + ".jpg")
-	except Exception as e:
-		print(e)
-@retry
-@run_async
-def wallparser(bot, update, tags, pages, chat_id, info=None): #Wallpaper parser
-	bot.sendChatAction(chat_id, "upload_photo")
-	client = Pybooru('Yandere')
-	try:
-		randompage = randint(1, int(pages))
-		posts = client.posts_list(tags=str(tags), limit=1, page=str(randompage))
-		for post in posts:
-			tmp_data = "Uploader: " + post['author']  + "\nID: " + str(post['id'])
-			globalarray[chat_id] = dict(data=tmp_data)
-		photo = post['file_url']
-		reply_markup = ikeyboard
-		if info != None:
-			bot.sendPhoto(chat_id, photo, reply_markup=reply_markup, caption=info + '\n' + tmp_data)
-		else:
-			bot.sendPhoto(chat_id, photo, reply_markup=reply_markup, caption=tmp_data)
-	except Exception as e:
-		print(e)
-		print("Retrying...")
-		print (wallparser(bot, update, tags, pages, chat_id))
 
-@run_async
-def callback(bot, update): #Callback handler
-    query = update.callback_query
-    if query.data == "Download":
-    	bot.editMessageReplyMarkup(query.message.chat_id, query.message.message_id)
-    	try:
-    		image_id = str(globalarray[query.message.chat_id]).split("ID: ", 1)[1]
-    		image_id = image_id.split("\'", 1)[0]
-    		idd(bot, update, chat_id=query.message.chat_id, tags=image_id)
-    	except Exception as e:
-    		print(e)
-    elif query.data == "More":
-    	bot.editMessageReplyMarkup(query.message.chat_id, query.message.message_id)
-    	if lastcmd.get(query.message.chat_id) == '/anime':
-    		anime(bot, update, chat_id=query.message.chat_id, chan='@anime_channel')
-    	elif lastcmd.get(query.message.chat_id) == '/hentai':
-    		hentai(bot, update, chat_id=query.message.chat_id, chan='@hentai_channel')
-    	elif lastcmd.get(query.message.chat_id) == '/ecchi':
-    		ecchi(bot, update, chat_id=query.message.chat_id, chan='@ecchi_channel')
-    	elif lastcmd.get(query.message.chat_id) == '/uncensored':
-    		uncensored(bot, update, chat_id=query.message.chat_id, chan='@uncensored_channel')
-    	elif lastcmd.get(query.message.chat_id) == '/yuri':
-    		yuri(bot, update, chat_id=query.message.chat_id, chan='@yuri_channel')
-    	elif lastcmd.get(query.message.chat_id) == '/loli':
-    		loli(bot, update, chat_id=query.message.chat_id, chan='@loli_channel')
-    	elif lastcmd.get(query.message.chat_id) == '/neko':
-    		neko(bot, update, chat_id=query.message.chat_id, chan='@anime_channel')
-    	elif lastcmd.get(query.message.chat_id) == '/wallpaper':
-    		wallpaper(bot, update, chat_id=query.message.chat_id, chan='@anime_channel')
-    	elif str(lastcmd.get(query.message.chat_id)).split(' ', 1)[0] == '/tag':
-    		tag(bot, update, chat_id=query.message.chat_id)
-    	else:
-    		bot.sendMessage(query.message.chat_id, 'Try calling command again!')
-
-@run_async
-def text(bot, update):
-    if update.message.text == "Anime": #Keyboard handler
-    	anime(bot, update, chat_id=update.message.chat_id)
-    elif update.message.text == "Hentai (18+)":
-    	hentai(bot, update, chat_id=update.message.chat_id)
-    elif update.message.text == "Uncensored (18+)":
-    	uncensored(bot, update, chat_id=update.message.chat_id)
-    elif update.message.text == "Yuri (18+)":
-    	yuri(bot, update, chat_id=update.message.chat_id)
-    elif update.message.text == "Loli (18+)":
-    	loli(bot, update, chat_id=update.message.chat_id)
-    elif update.message.text == "Ecchi":
-    	ecchi(bot, update, chat_id=update.message.chat_id)
-    elif update.message.text == "Neko":
-    	neko(bot, update, chat_id=update.message.chat_id)
-    elif update.message.text == "Wallpaper":
-    	wallpaper(bot, update, chat_id=update.message.chat_id)
-    else:
-    	pass
-    	
-def inline(bot, update): #Inline Handler & Parser
-	query = update.inline_query.query
-	if query is None:
-		query = 'rating:s'
-		client = Pybooru('Yandere')
-		posts = client.posts_list(tags=query, limit=50)
-		lposts = len(posts)
-		inlinequery = list()
-		reply_markup = InlineKeyboardMarkup([InlineKeyboardButton("More", callback_data='More')])
-		for post in posts:
-			inlinequery.append(InlineQueryResultPhoto(
-					type='photo',
-					id=uuid4(),
-					photo_url=post['file_url'],
-					photo_width=post['preview_width']*6,
-					photo_height=post['preview_height']*6,
-					#reply_markup=reply_markup,
-					thumb_url=post['preview_url']),)
-		bot.answerInlineQuery(update.inline_query.id, results=inlinequery, switch_pm_text="Help", switch_pm_parameter="ihelp")
-		inlinequery.clear()
+	if chan !=None:
+		parser(bot, update, tags=parse_data['tags'][c_id], pages='50', chat_id=chat_id, info='Want more? Join %s!' % chan, ch_id=str(ch_id)) 
 	else:
-		client = Pybooru('Yandere')
-		posts = client.posts_list(tags=query, limit=50)
-		lposts = len(posts)
-		inlinequery = list()
-		reply_markup = InlineKeyboardMarkup([InlineKeyboardButton("More", callback_data='More')])
-		for post in posts:
-			inlinequery.append(InlineQueryResultPhoto(
-					type='photo',
-					id=uuid4(),
-					photo_url=post['file_url'],
-					photo_width=post['preview_width']*6,
-					photo_height=post['preview_height']*6,
-					#reply_markup=reply_markup,
-					thumb_url=post['preview_url']),)
-		bot.answerInlineQuery(update.inline_query.id, results=inlinequery, switch_pm_text="Help", switch_pm_parameter="ihelp")
-		inlinequery.clear()
+		parser(bot, update, tags=parse_data['tags'][c_id], pages='50', chat_id=chat_id, ch_id=str(ch_id))
 
-	
+	log(bot, name=source.from_user.first_name, username=source.from_user.username.replace('_', '\_'), chat_id=source.chat_id, user_id=source.from_user.id, command=data, c_type=c_type)
+
 @run_async
 def idd(bot, update, tags=None, chat_id=None):
 	randomint = randint(1000, 10000000)
 	try:
 		bot.sendChatAction(chat_id, "upload_document")
-		tags = update.message.text.split(' ', 1)[1]
-		chat_id = update.message.chat_id
 		try:
-			client = Pybooru('Yandere')
-			posts = client.posts_list(tags="id:"+str(tags), limit=1)
+			#client = Danbooru('danbooru', username='tiny_paw', api_key='5Kerabo7TiwzeHHwqoe0dd3ixrawZM_wWvCNg8Q_gT4')
+			client = Moebooru('yandere')
+			posts = client.post_list(tags=tags)
 			for post in posts:
 				urllib.request.urlretrieve(post['file_url'], "tmp/anime_bot_" + str(randomint) + ".jpg")
-				tmp_data = "Uploader: " + post['author']  + "\nID: " + str(post['id'])
-				globalarray[chat_id] = dict(data=tmp_data)
+			ckeyboard = InlineKeyboardMarkup([[InlineKeyboardButton("Support Me", url='https://paypal.me/ev3rest')], [InlineKeyboardButton("More", callback_data="{'data':'More'}")]])
+			reply_markup = ckeyboard
 			photo = open('tmp/anime_bot_' + str(randomint) + ".jpg", 'rb')
-			reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("More", callback_data='More')]])
 			bot.sendDocument(chat_id, photo, reply_markup=reply_markup)
 			os.remove('tmp/anime_bot_' + str(randomint) + ".jpg")
-		except Exception as e:
-			print(e)
-	except:
-		bot.sendChatAction(chat_id, "upload_document")
-		client = Pybooru('Yandere')
-		try:
-			posts = client.posts_list(tags="id:"+str(tags), limit=1)
-			for post in posts:
-				urllib.request.urlretrieve(post['file_url'], "tmp/anime_bot_" + str(randomint) + ".jpg")
-				tmp_data = "Uploader: " + post['author']  + "\nID: " + str(post['id'])
-				globalarray[chat_id] = dict(data=tmp_data)
-			photo = open('tmp/anime_bot_' + str(randomint) + ".jpg", 'rb')
-			reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("More", callback_data='More')]])
-			bot.sendDocument(chat_id, photo, reply_markup=reply_markup)
-			os.remove('tmp/anime_bot_' + str(randomint) + ".jpg")
-		except Exception as e:
-			print(e)
+		except Exception:
+			traceback.print_exc()
+	except Exception:
+		traceback.print_exc()
 
 @run_async
-def su(bot, update): #Sudo commands from sudo list
-	if update.message.from_user.id in superusers:
+#@retry
+def parser(bot, update, tags, pages, chat_id, info=None, ch_id=None): #Usual parser for usual commands
+	global x
+	global p_id
+	randomint = randint(1000, 10000000)
+	bot.sendChatAction(chat_id, "upload_photo")
+	#client = Danbooru('danbooru', username='tiny_paw', api_key='5Kerabo7TiwzeHHwqoe0dd3ixrawZM_wWvCNg8Q_gT4')
+	client = Moebooru('yandere')
+	try:
+		randompage = randint(1, int(pages))
+		if len(x[str(ch_id)]['url']) == 0:
+			posts = client.post_list(tags=str(tags), page=randompage, limit=40)
+			for post in posts:
+				#fileurl = 'http://danbooru.donmai.us' + post['file_url']
+				fileurl = post['sample_url']
+				x[str(ch_id)]['url'].append(fileurl)
+				x[str(ch_id)]['id'].append(post['id'])
 		try:
-			bot.sendMessage(superusers[0], '''Sudo:
-				/ev3start
-				/ev3stop
-				/mustart
-				/mustop
-				/clear''')
+			urllib.request.urlretrieve(x[str(ch_id)]['url'][0], "tmp/anime_bot_" + str(randomint) + ".jpg")
+		except Exception:
+			traceback.print_exc()
+		ikeyboard = InlineKeyboardMarkup([[InlineKeyboardButton("Support Me", url='https://paypal.me/ev3rest')], [InlineKeyboardButton("Download", callback_data="{'data':'Download', 'id':%s}"%x[str(ch_id)]['id'][0])], [InlineKeyboardButton("More", callback_data="{'data':'More', 'c_id':%s}"%ch_id)]])
+		reply_markup = ikeyboard
+		photo = open('tmp/anime_bot_' + str(randomint) + ".jpg", 'rb')
+		bot.sendPhoto(chat_id, photo, reply_markup=reply_markup)
+		os.remove('tmp/anime_bot_' + str(randomint) + ".jpg")
+		x[str(ch_id)]['url'].pop(0)
+		x[str(ch_id)]['id'].pop(0)
+		botanio(bot, update, message=update.message, uid=chat_id, event_name=lastcmd[chat_id])
+
+	except Exception:
+		traceback.print_exc()
+		bot.sendMessage(chat_id, 'Oops... Something went wrong, please call the command again!')
+		try:
+			os.remove('tmp/anime_bot_' + str(randomint) + ".jpg")
+		except:
+			pass
+		x[str(ch_id)]['url'].pop(0)
+		x[str(ch_id)]['id'].pop(0)
+
+@run_async
+def callback(bot, update): #Callback handler
+	global p_id
+	query = update.callback_query
+	if json.loads(query.data.replace("'", "\""))['data'] == "More":
+		try:
+			bot.editMessageReplyMarkup(query.message.chat_id, query.message.message_id)
+			c_id = parse_data['commands'].index(lastcmd.get(query.message.chat_id))
+			bot.answer_callback_query(query.id, str(parse_data['chan'][c_id]))
+			commands(bot, update, chat_id=query.message.chat_id, chan=parse_data['chan'][c_id], data=lastcmd.get(query.message.chat_id))
+		except Exception:
+			traceback.print_exc()
+	elif json.loads(query.data.replace("'", "\""))['data'] == "Download":
+		bot.editMessageReplyMarkup(query.message.chat_id, query.message.message_id)
+		try:
+			idd(bot, update, chat_id=query.message.chat_id, tags='id:'+str(json.loads(query.data.replace("'", "\""))['id']))
+			bot.answer_callback_query(query.id, text='Downloading')
 		except Exception as e:
-			print (e)
+			traceback.print_exc()
+
+def inline(bot, update): #Inline Handler & Parser
+	query = update.inline_query.query
+	if query is None:
+		query = 'rating:s'
+		client = Moebooru('yandere')
+		posts = client.post_list(tags=query, limit=50)
+		lposts = len(posts)
+		inlinequery = list()
+		reply_markup = InlineKeyboardMarkup([InlineKeyboardButton("More", callback_data='More')])
+		for post in posts:
+			inlinequery.append(InlineQueryResultPhoto(
+					type='photo',
+					id=uuid4(),
+					photo_url=post['file_url'],
+					photo_width=post['preview_width']*6,
+					photo_height=post['preview_height']*6,
+					#reply_markup=reply_markup,
+					thumb_url=post['sample_url']),)
+		bot.answerInlineQuery(update.inline_query.id, results=inlinequery)
+		inlinequery.clear()
 	else:
-		pass
+		client = Moebooru('yandere')
+		posts = client.post_list(tags=query, limit=50)
+		lposts = len(posts)
+		inlinequery = list()
+		reply_markup = InlineKeyboardMarkup([InlineKeyboardButton("More", callback_data='More')])
+		for post in posts:
+			inlinequery.append(InlineQueryResultPhoto(
+					type='photo',
+					id=uuid4(),
+					photo_url=post['file_url'],
+					photo_width=post['preview_width']*6,
+					photo_height=post['preview_height']*6,
+					#reply_markup=reply_markup,
+					thumb_url=post['preview_url']),)
+		bot.answerInlineQuery(update.inline_query.id, results=inlinequery)
+		inlinequery.clear()
+
+
+def botanio(bot, update, message, event_name, uid):
+	try:
+		message_dict = update.message.to_dict()
+	except:
+		message_dict = "{}"
+	try:
+		print (botan.track(botan_token, uid, message_dict, event_name))
+	except Exception as e:
+		traceback.print_exc()
+
+def log(bot, name, chat_id, user_id, username, command, c_type):
+	bot.sendMessage(chat_id='-57197611', text='#log @anime\_bot #%s\n\n*Command:* %s\n\n*Name:* %s\n*Username:* @%s\n\n*Chat ID:* %s\n*User ID:* %s\n' %(c_type, command, name, username, chat_id, user_id), parse_mode=ParseMode.MARKDOWN)
+
 @run_async
 def ping(bot, update):
 	bot.sendMessage(update.message.chat_id, text="Pong", reply_to_message_id=update.message.message_id)
+
 @run_async
 def info(bot, update, **kwargs):
 	if update.message.from_user.id in superusers:
@@ -535,76 +262,30 @@ def feedback(bot, update):
 	except:
 		bot.sendMessage(update.message.chat_id, text='Something went wrong :(\nAre you using /feedback <text>?')
 
-#BLOCK: System
-
 @run_async
-def mes(bot, update):
-	if update.message.from_user.id in superusers:
-		try:
-			s = update.message.text
-			raw_text = s.split(' ', 1)[1]
-			cid = raw_text.split(' ', 1)[0]
-			text = raw_text.split(' ', 1)[1]
-			try:
-				bot.sendMessage(cid, text)
-				bot.sendMessage(superusers[1], "Success")
-			except:
-				bot.sendMessage(superusers[1], "Error")
-		except Exception as e:
-			print(e)
-			bot.sendMessage(superusers[1], e)
-
-
 def error(bot, update, error):
-	logging.warning('Update "%s" caused error "%s"' % (update, error))
-
-def botanio(bot, update, message, event_name, uid):
 	try:
-		message_dict = update.message.to_dict()
-	except:
-		message_dict = "{}"
-	try:
-		print (botan.track(botan_token, uid, message_dict, event_name))
-	except Exception as e:
-		print(e)
+		bot.sendMessage('-57197611', 'Update "%s" caused error "%s"' % (update, error))
+	except Exception:
+		traceback.print_exc()
 
 def main():
-	token = "TOKEN"
+	token = bot_token
 	updater = Updater(token, workers=20)
 
 	updater.dispatcher.add_handler(CommandHandler('start', start))
-	updater.dispatcher.add_handler(CommandHandler('help', help))
-
-	updater.dispatcher.add_handler(CommandHandler('anime', anime))
-	updater.dispatcher.add_handler(CommandHandler('hentai', hentai))
-	updater.dispatcher.add_handler(CommandHandler('ecchi', ecchi))
-	updater.dispatcher.add_handler(CommandHandler('uncensored', uncensored))
-	updater.dispatcher.add_handler(CommandHandler('yuri', ecchi))
-	updater.dispatcher.add_handler(CommandHandler('loli', loli))
-	updater.dispatcher.add_handler(CommandHandler('neko', neko))
-	updater.dispatcher.add_handler(CommandHandler('wallpaper', wallpaper))
-
-	updater.dispatcher.add_handler(CommandHandler('id', idd))
-
-	updater.dispatcher.add_handler(CommandHandler('tag', tag))
-
 	updater.dispatcher.add_handler(CommandHandler('ping', ping))
 	updater.dispatcher.add_handler(CommandHandler('info', info))
-
-	updater.dispatcher.add_handler(CommandHandler('su', su))
 	updater.dispatcher.add_handler(CommandHandler('feedback', feedback))
-
-	updater.dispatcher.add_handler(CommandHandler("mes", mes))
-
 	updater.dispatcher.add_handler(CallbackQueryHandler(callback))
-	updater.dispatcher.add_handler(MessageHandler(Filters.text, text))
-	updater.dispatcher.add_handler(InlineQueryHandler(inline))
+	#updater.dispatcher.add_handler(InlineQueryHandler(inline))
+
+	for item in items:
+		updater.dispatcher.add_handler(CommandHandler(item, commands)) #1
 
 	updater.dispatcher.add_error_handler(error)
-	updater.start_polling(bootstrap_retries=4, clean=True)
+	updater.start_polling(bootstrap_retries=1, clean=True)
 	
-
-
 	updater.idle()
 
 if __name__ == '__main__':
