@@ -24,7 +24,6 @@ import requests
 import datetime
 import json
 from pybooru import Moebooru, Danbooru
-from retrying import retry
 from telegram import Emoji, ForceReply, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, ReplyKeyboardMarkup, KeyboardButton, InlineQueryResultArticle, InlineQueryResultPhoto
 from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, InlineQueryHandler, Filters
 from telegram.ext.dispatcher import run_async
@@ -50,7 +49,7 @@ items = ['anime', 'hentai', 'loli', 'yuri', 'ecchi', 'neko', 'uncensored']
 lastcmd = {}
 x = {'1':{'url':[], 'id':[]}, '2':{'url':[], 'id':[]}, '3':{'url':[], 'id':[]}, '4':{'url':[], 'id':[]}, '5':{'url':[], 'id':[]}, '6':{'url':[], 'id':[]}, '7':{'url':[], 'id':[]}, '8':{'url':[], 'id':[]}, '9':{'url':[], 'id':[]}}
 d = {'1': {'data': '', 'url': ''}, '2': {'data': '', 'url': ''}, '3': {'data': '', 'url': ''}, '4': {'data': '', 'url': ''}, '5': {'data': '', 'url': ''}, '6': {'data': '', 'url': ''}, '7': {'data': '', 'url': ''}, '8': {'data': '', 'url': ''}, '9': {'data': '', 'url': ''}}
-parse_data = {'commands':['/anime', '/hentai', '/loli', '/yuri', '/ecchi', '/neko', '/uncensored', '/gif'], 'tags':['rating:s', 'rating:e', 'loli', 'yuri', 'rating:q', 'cat_ears', 'uncensored', 'animated_gif'], 'ch_id': ['1', '2', '3', '4', '5', '6', '7', '8'], 'chan':['@anime_channel', '@hentai_channel', '@channel_loli', '@yuri_channel', '@ecchi_channel', '@anime_channel', '@uncensored_channel', '@anime_channel']}
+parse_data = {'commands':['/anime', '/hentai', '/loli', '/yuri', '/ecchi', '/neko', '/uncensored', '/wallpaper'], 'tags':['rating:s', 'rating:e', 'loli', 'yuri', 'rating:q', 'cat_ears', 'uncensored', 'wallpaper'], 'ch_id': ['1', '2', '3', '4', '5', '6', '7', '8'], 'chan':['@anime_channel', '@hentai_channel', '@channel_loli', '@yuri_channel', '@ecchi_channel', '@anime_channel', '@uncensored_channel', '@anime_channel']}
 
 #TOKENS
 
@@ -126,7 +125,6 @@ def idd(bot, update, tags=None, chat_id=None):
 		traceback.print_exc()
 
 @run_async
-#@retry
 def parser(bot, update, tags, pages, chat_id, info=None, ch_id=None): #Usual parser for usual commands
 	global x
 	global p_id
@@ -199,11 +197,11 @@ def inline(bot, update): #Inline Handler & Parser
 			inlinequery.append(InlineQueryResultPhoto(
 					type='photo',
 					id=uuid4(),
-					photo_url=post['file_url'],
-					photo_width=post['preview_width']*6,
-					photo_height=post['preview_height']*6,
+					photo_url=post['sample_url'],
+					photo_width=post['width']*6,
+					photo_height=post['height']*6,
 					#reply_markup=reply_markup,
-					thumb_url=post['sample_url']),)
+					thumb_url=post['preview_url']),)
 		bot.answerInlineQuery(update.inline_query.id, results=inlinequery)
 		inlinequery.clear()
 	else:
@@ -216,9 +214,9 @@ def inline(bot, update): #Inline Handler & Parser
 			inlinequery.append(InlineQueryResultPhoto(
 					type='photo',
 					id=uuid4(),
-					photo_url=post['file_url'],
-					photo_width=post['preview_width']*6,
-					photo_height=post['preview_height']*6,
+					photo_url=post['sample_url'],
+					photo_width=post['width']*6,
+					photo_height=post['height']*6,
 					#reply_markup=reply_markup,
 					thumb_url=post['preview_url']),)
 		bot.answerInlineQuery(update.inline_query.id, results=inlinequery)
@@ -277,7 +275,7 @@ def main():
 	updater.dispatcher.add_handler(CommandHandler('info', info))
 	updater.dispatcher.add_handler(CommandHandler('feedback', feedback))
 	updater.dispatcher.add_handler(CallbackQueryHandler(callback))
-	#updater.dispatcher.add_handler(InlineQueryHandler(inline))
+	updater.dispatcher.add_handler(InlineQueryHandler(inline))
 
 	for item in items:
 		updater.dispatcher.add_handler(CommandHandler(item, commands)) #1
