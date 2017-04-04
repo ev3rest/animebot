@@ -109,7 +109,6 @@ def idd(bot, update, tags=None, chat_id=None):
 	try:
 		bot.sendChatAction(chat_id, "upload_document")
 		try:
-			#client = Danbooru('danbooru', username='tiny_paw', api_key='5Kerabo7TiwzeHHwqoe0dd3ixrawZM_wWvCNg8Q_gT4')
 			client = Moebooru('yandere')
 			posts = client.post_list(tags=tags)
 			for post in posts:
@@ -130,7 +129,6 @@ def parser(bot, update, tags, pages, chat_id, info=None, ch_id=None): #Usual par
 	global p_id
 	randomint = randint(1000, 10000000)
 	bot.sendChatAction(chat_id, "upload_photo")
-	#client = Danbooru('danbooru', username='tiny_paw', api_key='5Kerabo7TiwzeHHwqoe0dd3ixrawZM_wWvCNg8Q_gT4')
 	client = Moebooru('yandere')
 	try:
 		randompage = randint(1, int(pages))
