@@ -22,7 +22,7 @@ You can donate on https://paypal.me/ev3rest or https://patreon.com/ev3rest
 Developer: [@ev3rest](https://t.me/ev3rest)
 Helper: [@disinterpreter](https://t.me/disinterpreter)
 
-## Meow
+## Chats
   Anime Bot: [@anime_bot](https://t.me/anime_bot)
 
   Anime Group[EN]: [@anime_en](https://t.me/anime_en)
