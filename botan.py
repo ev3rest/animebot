@@ -15,13 +15,13 @@ TRACK_URL = 'https://api.botan.io/track'
 SHORTENER_URL = 'https://api.botan.io/s/'
 
 
-def track(token, uid, message, name='Message'):
+def track(token, uid, message, name = 'Message'):
     try:
         r = requests.post(
             TRACK_URL,
             params={"token": token, "uid": uid, "name": name},
-            data=json.dumps(message),
-            headers={'Content-type': 'application/json'},
+            data = json.dumps(message),
+            headers = {'Content-type': 'application/json'},
         )
         return r.json()
     except requests.exceptions.Timeout:
