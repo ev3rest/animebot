@@ -1,5 +1,5 @@
 # Anime Bot for Telegram
-Bot has been discontinued
+Bot has been discontinued (Though will be updated. Maybe)
 
 Telegram-based bot. Uses **Danbooru** and **Moebooru** API to parse images.
 ## Required packages
