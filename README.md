@@ -15,12 +15,12 @@ Telegram-based bot. Uses **Danbooru** and **Moebooru** API to parse images.
 `python3 animebot.py`
 
 ## Contribution
-Contributions via pull request are highly appreciated. 
+Contributions via pull requests are highly appreciated. 
 
 ## Donate
 You can donate on https://paypal.me/ev3rest
 ## Credits
-Developer: [@ev3rest](https://t.me/ev3rest)
+Developer: [@ev3me](https://t.me/ev3me)
 Helper: [@disinterpreter](https://t.me/disinterpreter)
 
 ## Chats
