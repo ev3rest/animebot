@@ -1,15 +1,15 @@
 # Anime Bot for Telegram
-Bot has been discontinued (Though will be updated. Maybe)
+[Get on Telegram](https://t.me/anime_bot)
 
 Telegram-based bot. Uses **Danbooru** and **Moebooru** API to parse images.
 ## Required packages
-- [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot)
+- [aiogram](https://github.com/aiogram/aiogram)
 - [Pybooru](https://github.com/LuqueDaniel/pybooru)
 
 ## Deploy & Run
-`pip install pybooru --upgrade`
+`pip install pybooru`
 
-`pip install python-telegram-bot --upgrade`
+`pip install aiogram`
 
 **Run:**
 `python3 animebot.py`
