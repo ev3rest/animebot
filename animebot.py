@@ -218,43 +218,23 @@ async def inline_function(inline_query: InlineQuery):
 		offset = ' page=1'
 	if query is None:
 		query = 'rating:s'
-		client = Moebooru('yandere')
-		posts = client.post_list(tags=query, limit=50, page=int(offset.split('page=', 1)[1]))
-		lposts = len(posts)
-		inlinequery = list()
-		for post in posts:
-			inlinequery.append(InlineQueryResultPhoto(
-					type='photo',
-					id=str(uuid4()),
-					photo_url=post['sample_url'],
-					photo_width=post['width'],
-					photo_height=post['height'],
-					thumb_url=post['preview_url'],
-					caption='<a href="https://t.me/anime_bot?start=%s">Download</a>' % (post['id']), 
-					parse_mode=ParseMode.HTML),)
-		if lposts >=50:
-			await bot.answer_inline_query(inline_query.id, results=inlinequery, next_offset=query + offset)
-		else:
-			await bot.answer_inline_query(inline_query.id, results=inlinequery)
-		inlinequery.clear()
+	client = Moebooru('yandere')
+	posts = client.post_list(tags=query, limit=50, page=int(offset.split('page=', 1)[1]))
+	lposts = len(posts)
+	inlinequery = list()
+	for post in posts:
+		inlinequery.append(InlineQueryResultPhoto(
+				id=str(uuid4()),
+				photo_url=post['sample_url'],
+				photo_width=post['width'],
+				photo_height=post['height'],
+				thumb_url=post['preview_url'],
+				caption='<a href="https://t.me/anime_bot?start=%s">Download</a>' % (post['id']), 
+				parse_mode=ParseMode.HTML),)
+	if lposts >=50:
+		await bot.answer_inline_query(inline_query.id, results=inlinequery, next_offset=query + offset)
 	else:
-		client = Moebooru('yandere')
-		posts = client.post_list(tags=query, limit=50, page=int(offset.split('page=', 1)[1]))
-		lposts = len(posts)
-		inlinequery = list()
-		for post in posts:
-			inlinequery.append(InlineQueryResultPhoto(
-					id=str(uuid4()),
-					photo_url=post['sample_url'],
-					photo_width=post['width'],
-					photo_height=post['height'],
-					thumb_url=post['preview_url'],
-					caption='<a href="https://t.me/anime_bot?start=%s">Download</a>' % (post['id']), 
-					parse_mode=ParseMode.HTML),)
-		if lposts >=50:
-			await bot.answer_inline_query(inline_query.id, results=inlinequery, next_offset=query + offset)
-		else:
-			await bot.answer_inline_query(inline_query.id, results=inlinequery)
-		inlinequery.clear()
+		await bot.answer_inline_query(inline_query.id, results=inlinequery)
+	inlinequery.clear()
 if __name__ == '__main__':
 	executor.start_polling(dp, skip_updates=True)
