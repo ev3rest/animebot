@@ -16,7 +16,7 @@ import parser
 
 logging.basicConfig(level=logging.INFO)
 
-API_TOKEN = ''
+API_TOKEN = '192818686:AAFiq8MarYlT2Ztui0qEUb8B0qmkGOAvQYY'
 #----------------------------------
 # Initialize bot and dispatcher
 bot = Bot(token=API_TOKEN)
@@ -38,7 +38,7 @@ async def command_handler(message: types.Message, post=None, container_index = N
 		else:
 			container = get_objects()[int(container_index)]
 		channel = container.channel
-		post = await parser.get_post(pages = container.pages, tags = container.get_tags())
+		post = parser.get_post(pages = container.pages, tags = container.get_tags())
 		photo = post['sample_url']
 	else:
 		request_type = CallbackCommands.DOWNLOAD
@@ -60,7 +60,7 @@ async def callback_next(query: types.CallbackQuery, callback_data: dict):
 @dp.callback_query_handler(callback_cb.filter(function = CallbackCommands.DOWNLOAD))
 async def callback_download(query: types.CallbackQuery, callback_data: dict):
 	await query.message.edit_reply_markup()
-	post = await parser.get_post(post_id=callback_data['value'])
+	post = parser.get_post(post_id=callback_data['value'])
 	await command_handler(message = query.message, post = post, container_index = callback_data['container_index'])
 
 # @dp.message_handler()
