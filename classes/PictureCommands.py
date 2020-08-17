@@ -61,7 +61,7 @@ picture_commands = PictureCommands(
     ),
     PictureCommand(
         command='hentai',
-        text_command='Hentai',
+        text_command='Hentai (18+)',
         channel='hentai_channel',
         tags=['rating:e'],
         pages=1527
@@ -89,8 +89,7 @@ picture_commands = PictureCommands(
     ),
     PictureCommand(
         command='neko',
-        text_command='Neko (18+)',
-        channel='hentai_channel',
+        text_command='Neko',
         tags=['cat_ears'],
         pages=402
     ),
@@ -103,7 +102,7 @@ picture_commands = PictureCommands(
     ),
     PictureCommand(
         command='wallpaper',
-        text_command='wallpaper',
+        text_command='Wallpaper',
         tags=['wallpaper'],
         pages=523
     ),
