@@ -21,10 +21,10 @@ class PictureCommand(Filter):
         self.pages = pages
 
     def request_params(self):
-        print(self.command_id)
         return dict(
             tags=' '.join(self.tags),
-            pages=self.pages
+            pages=self.pages,
+            command_id=self.command_id
         )
 
     def base_filter(self):
