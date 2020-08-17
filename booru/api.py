@@ -16,12 +16,13 @@ class MoeBooru():
 		if not storage.get(tags):
 			print("Empty for tags (%s)" % (tags))
 			await self.populate_storage(page, tags)
-		to_return = storage[tags][0]
-		storage[tags].pop(0)
+		to_return = storage.get(tags)[0]
+		storage.pop(tags, 0)
 		return to_return
 
 	async def populate_storage(self, page, tags):
-		storage[tags] = await self.posts_list(page, tags)
+		posts = await self.posts_list(page, tags)
+		storage.populate(tags, posts)
 
 	async def posts_list(self, page, tags) -> [{}]:
 		path = '/post.json'

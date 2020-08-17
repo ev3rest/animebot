@@ -1,6 +1,10 @@
 class Storage:
 	data = {}
 	def get(self, tags):
-		to_return = self.data.get(tags)
-		self.data[tags].pop()
-		return to_return
+		return self.data.get(tags)
+
+	def populate(self, tags, posts):
+		self.data[tags] = posts
+
+	def pop(self, tags, index):
+		self.data[tags].pop(index)
