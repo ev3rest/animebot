@@ -29,13 +29,10 @@ class PictureCommand(Filter):
 
     def base_filter(self):
         return Command(commands=self.command) | Text(equals=self.text_command)
-    # check for commands and text
+
     async def check(self, message: types.Message):
         if await self.base_filter().check(message):
             return dict(params=self.request_params())
-    # async def check(self, query: types.CallbackQuery):
-    #     if await self.base_filter().check(message):
-    #         return dict(params=self.request_params())
 
 class PictureCommands(Filter):
     def __init__(self, *args: PictureCommand):

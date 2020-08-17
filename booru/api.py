@@ -10,7 +10,7 @@ from .storage import PostsStorage
 storage = PostsStorage()
 
 
-class MoeBooru:
+class Moebooru:
 	def __init__(self, endpoint):
 		self.endpoint = "https://" + endpoint
 
