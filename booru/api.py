@@ -1,20 +1,19 @@
 import aiohttp
 import asyncio
+from storage import *
 try:
 	import ujson as json
 except:
 	import json
 
-storage = {}
+storage = Storage()
 
 class MoeBooru():
 	def __init__(self, endpoint):
 		self.endpoint = "https://" + endpoint
 
 	async def get_post(self, page, tags):
-		if tags not in storage:
-			storage[tags] = []
-		if not storage[tags]:
+		if not storage.get(tags):
 			print("Empty for tags (%s)" % (tags))
 			await self.populate_storage(page, tags)
 		to_return = storage[tags][0]

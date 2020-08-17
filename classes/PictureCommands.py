@@ -2,7 +2,10 @@ from aiogram import types
 from aiogram.dispatcher.filters import Command, Text, Filter
 from typing import List
 
+keyboard_name = []
+
 class PictureCommand(Filter):
+    text_command: type = str
     def __init__(self,
                  command: str,
                  text_command: str,
