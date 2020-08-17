@@ -2,10 +2,11 @@ from aiogram import types
 from aiogram.dispatcher.filters import Command, Text, Filter
 from typing import List
 
-keyboard_name = []
-
 class PictureCommand(Filter):
-    text_command: type = str
+    commands_num = 0
+    def __new__(cls, *args, **kwargs):
+        PictureCommand.commands_num+=1
+        return super(PictureCommand, cls).__new__(cls)
     def __init__(self,
                  command: str,
                  text_command: str,
@@ -13,12 +14,14 @@ class PictureCommand(Filter):
                  pages: int,
                  channel: str=None):
         self.command = command
+        self.command_id = self.commands_num+1
         self.text_command = text_command
         self.channel = channel or 'anime_channel'
         self.tags = tags
         self.pages = pages
 
     def request_params(self):
+        print(self.command_id)
         return dict(
             tags=' '.join(self.tags),
             pages=self.pages
@@ -26,11 +29,13 @@ class PictureCommand(Filter):
 
     def base_filter(self):
         return Command(commands=self.command) | Text(equals=self.text_command)
-
+    # check for commands and text
     async def check(self, message: types.Message):
         if await self.base_filter().check(message):
             return dict(params=self.request_params())
-
+    # async def check(self, query: types.CallbackQuery):
+    #     if await self.base_filter().check(message):
+    #         return dict(params=self.request_params())
 
 class PictureCommands(Filter):
     def __init__(self, *args: PictureCommand):
