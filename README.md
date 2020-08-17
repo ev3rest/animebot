@@ -10,7 +10,7 @@ Telegram-based bot. Uses **Danbooru** and **Moebooru** API to parse images.
 `pip install pybooru aiogram uvloop ujson aiohttp[speedups]`
 
 **Run:**
-`python3 animebot.py`
+`python3 bot.py`
 
 ## Support
 You can support project on https://paypal.me/ev3rest
