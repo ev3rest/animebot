@@ -1,0 +1,15 @@
+# /usr/lib/systemd/system/animebot.service
+[Unit]
+Description=Anime Telegram Bot daemon
+After=multi-user.target
+
+[Service]
+WorkingDirectory=/ev3rest/stable/animebot
+Type=idle
+ExecStart=/usr/bin/python3 /ev3rest/stable/animebot/animebot.py
+Restart=always
+RestartSec=10
+SyslogIdentifier=python-animebot
+User=root
+[Install]
+WantedBy=multi-user.target
