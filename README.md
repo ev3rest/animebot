@@ -12,8 +12,6 @@ Telegram-based bot. Uses **Danbooru** and **Moebooru** API to parse images.
 **Run:**
 `python3 bot.py`
 
-## Support
-You can support project on https://paypal.me/ev3rest
 ## Credits
 Developer: [@ev3me](https://t.me/ev3me)(me)
 
