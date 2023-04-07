@@ -53,7 +53,7 @@ parse_data = {'commands':['/anime', '/hentai', '/loli', '/yuri', '/ecchi', '/nek
 callback_cb = CallbackData('post', 'function', 'data')
 
 async def record_user(chat_id):
-	pass
+  pass
        # async with aiosqlite.connect('bot.db') as db:
        #        await db.execute("INSERT INTO chats (chat_id) VALUES (%s)" % (chat_id))
        #        await db.commit()
