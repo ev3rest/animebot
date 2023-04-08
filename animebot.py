@@ -13,10 +13,12 @@ import os
 from random import randint
 from aiogram.dispatcher.middlewares import BaseMiddleware
 import aiosqlite
+from collections import namedtuple
 
 logging.basicConfig(level=logging.INFO)
 
-API_TOKEN = '106653739:AAHtJM59SDzq2SXPX8RBTn5IpBc-cIs5S48'
+API_TOKEN = ''
+lastcmd = {}
 
 class ImageCache:
     def __init__(self):
@@ -47,10 +49,26 @@ WEBAPP_PORT = 3009
 #----------------------------------
 
 stickers = ['CAADBAADJgMAAqKYZgAB0UH2shlpMSsC', 'CAADBAADLAMAAqKYZgABayywIAiqZ0gC', 'CAADBAADOAMAAqKYZgABh5wcd4QnpcwC', 'CAADBAADPQMAAqKYZgABur46JrhDohYC', 'CAADBAADswMAAqKYZgABVzxxH4lMba0C', 'CAADBAAD3gQAAqKYZgABmxmc1Y3A4xQC', 'CAADBAADWAUAAqKYZgAB1ia7fuNxpq4C', 'CAADBAADXA4AAh3PuAc4x8-E_-7aygI', 'CAADBAADeg4AAh3PuAe2kQ3GPRO3hwI', 'CAADBAADkg4AAh3PuAcj4B3CTwjDiQI', 'CAADBAADiwIAAsiLDQhiubnq7ueZrgI', 'CAADBAADmQIAAsiLDQgLP7VMIuZXgAI', 'CAADBAADmwIAAsiLDQiPkeWZT0jKPQI', 'CAADBAADlQIAAsiLDQhcIu-tSCjcBQI', 'CAADBAADjwIAAsiLDQjYx7KvqxKFMgI', 'CAADBAADnwIAAsiLDQibN_CcD5zfkQI', 'CAADBAADnQIAAsiLDQihvo41EnrDzAI', 'CAADBAADpQIAAsiLDQjK923PGHm5QQI', 'CAADBAADowIAAsiLDQgvfkwYeEQ-2QI', 'CAADBAADpwIAAsiLDQizmtsoKxTPggI', 'CAADBAADrQIAAsiLDQgMCsrjsg3v4wI', 'CAADBAADrwIAAsiLDQjIXFtjd_TqNAI', 'CAADBAADtwIAAsiLDQiBcvZcIdSJGgI', 'CAADBAADsQIAAsiLDQhLpnmM589abAI', 'CAADBAAD0QIAAsiLDQhh8fBJJVLT8QI', 'CAADBAAD0wIAAsiLDQgkmlDTS1nm7QI', 'CAADBAAD1wIAAsiLDQgNRH763A4EjgI', 'CAADAQADoQEAArna9gmuB8gVICvS9wI', 'CAADAQADqQEAArna9gnqCzMdDF0lUAI', 'CAADAQADrQEAArna9glHGcsWYKiMRAI', 'CAADAQADqwEAArna9gkmp05lNiNn9wI', 'CAADAQADtwEAArna9gkDeV746IbSwQI', 'CAADAQADvQEAArna9gnuMPtOZrW1PQI', 'CAADAQADvwEAArna9glCn8R5s1LbZAI', 'CAADBAADJgEAAqM2qAemZ_YJbuzDJwI', 'CAADBAADOQEAAqM2qAfkrc477ntjIgI', 'CAADBAADMAEAAqM2qAeX7j7nLeiNFQI', 'CAADBAADVAEAAqM2qAd0tDCJZ3A8ggI', 'CAADBAADUQEAAqM2qAdbGe9WG9EogQI', 'CAADBAADTAEAAqM2qAd-3A6X_ijf1wI', 'CAADBAADSAEAAqM2qAcAAUws3DcwQdIC', 'CAADBAADRgEAAqM2qAdssyA7IPhymQI', 'CAADBAADVgEAAqM2qAeDuMRxavg-9gI', 'CAADBAADhAADDvcmBlTiJw2iW3-DAg', 'CAADBAADhgADDvcmBhTDcsXEcO8RAg', 'CAADBAADiAADDvcmBmtco0ch3eYmAg', 'CAADBAADigADDvcmBsN4in4FXW4aAg', 'CAADBAADoQADDvcmBn7hBgmWUK1xAg', 'CAADBAADrQADDvcmBpQJ1c4eo8SaAg', 'CAADBAADxQQAAsOSbAP7HMKduOaRDAI', 'CAADBAAD0QQAAsOSbAPzeE-N7Wo1XAI', 'CAADBAAD1wQAAsOSbAMUAabgPzSUxAI', 'CAADBAAD2QQAAsOSbAM5-ZiM9NwCYQI', 'CAADBAAD3wQAAsOSbAN8cWh9AAGZ4JEC', 'CAADBAAD7QQAAsOSbAP87mq-1IhdVAI', 'CAADBAADngUAAsOSbAPyZJxHHwABDOsC', 'CAADBAADuwUAAsOSbAPVCu6yVd9AYgI', 'CAADBAADTwEAAqIkSQOcLYaijPdA9AI', 'CAADBAADewEAAqIkSQOKtlOA7PDVswI', 'CAADBAADfwEAAqIkSQMwmItrQLEAAbQC', 'CAADBAADigEAAqIkSQNNtoHkx9ztAQI', 'CAADBAADkAEAAqIkSQMLvYm2Z-WYYgI', 'CAADBAADmAEAAqIkSQP6IpIzeuoqdQI', 'CAADBAADmgEAAqIkSQPznG-Ig4iwAQI', 'CAADBAADogEAAqIkSQMs3FfHKdWVzAI', 'CAADBAADqAEAAqIkSQPH-RWOk7OuDQI', 'CAADBAADtgEAAqIkSQNaxXsO6qI36gI', 'CAADBAADvwEAAqIkSQOeSXUAAS1PnwsC', 'CAADBAAD8AEAAqIkSQOYAAF3LuxtgicC', 'CAADBAAD_AEAAqIkSQNHqmcGA9vgeAI', 'CAADBAAD8gEAAqIkSQMqnIXPK9AO4AI', 'CAADBAAD-AEAAqIkSQOST8xeeqZZ_QI', 'CAADBAADyAUAAuAFHALE9DV1idj8GQI', 'CAADBAAD0AUAAuAFHAKKqQlswE-TxAI', 'CAADBAAD7gUAAuAFHAJt4SYHShUyHQI', 'CAADBAAD1gUAAuAFHALWRdze8hSGgAI', 'CAADBQADYgAD6NvJAjw6mwsi3ZDcAg', 'CAADBQADawAD6NvJAvSDRGZiKm0-Ag', 'CAADBAADawYAApesNQABqnPuHOSm_rUC', 'CAADBAADggYAApesNQABY52p_5jYmDAC', 'CAADBAADkgYAApesNQABrWxxAo4i5YIC', 'CAADBAADlgYAApesNQABAaQoqR18rJcC', 'CAADBAADwAYAApesNQABj-Un4Rf2kAEC', 'CAADBAADpgMAApv7sgABKyxNf3LVHeAC', 'CAADBAADtAMAApv7sgAB-1esnD-WlHIC', 'CAADBAAD7gMAApv7sgABGCZKqVeej3YC', 'CAADAwADhAAD_ZPKAAGphJ9IUmjqqAI', 'CAADAgADsgADdqy6ButIWEMMsnSMAg', 'CAADAQADygMAAuJbQAVEJd8sOLqNJwI', 'CAADAQADyAMAAuJbQAU-y13TznSWXwI', 'CAADAQAD1AMAAuJbQAXPlcSmhmgxOgI', 'CAADBAADfQADylycBfFLFOlpUkSAAg', 'CAADBAADfwADylycBerATexgP5rfAg', 'CAADBAADgQADylycBRxpx-hgT8dBAg', 'CAADBAADgwADylycBapS4Fz1ozG4Ag', 'CAADBAADhwADylycBUXx92Qbc0HeAg', 'CAADBAADogADylycBWLXUovOwXa6Ag', 'CAADBAAD3gADylycBS0QiC-O4zvYAg', 'CAADBAADDAUAAspcnAU4aO3nT9quMAI', 'CAADBAADHgUAAspcnAVLCx1VIZ2laQI', 'CAADBAADOAUAAspcnAV7Wx41DCZINwI', 'CAADBAADaQEAAl7ugQYqaKHrgmb7mgI', 'CAADBAADOQQAAnZY-wJXL61k-or-uwI', 'CAADBAADQgQAAnZY-wJ2XZvSz11GhQI', 'CAADBAADTgQAAnZY-wK6b_dynGPoTAI', 'CAADBAADlwMAAspcnAWOVBRIBv3K7QI', 'CAADBAADmwMAAspcnAVYLJLwdXI4twI', 'CAADBAADvwMAAspcnAXh31MvOjw4_wI', 'CAADBAAD-QMAAspcnAU7QO_IByh3UQI', 'CAADBAAD5QMAAspcnAW5Pl-29Mre9gI', 'CAADBAADBwQAAspcnAUaKvx4Bb99kQI', 'CAADBAADQwQAAspcnAW3qRleNi9aNQI', 'CAADBAADxQwAAuf7rQZlyZi2n5t29QI', 'CAADBAADzwwAAuf7rQZMLO8dV3dzTAI', 'CAADBAAD1wwAAuf7rQZvaEDPm8950gI', 'CAADBAAD0wwAAuf7rQZat80CHwABEtcC', 'CAADBAAD0QwAAuf7rQa1vDSzF2iXDAI', 'CAADBAAD3wwAAuf7rQYE4k-pmuUnIQI', 'CAADBAADYA0AAuf7rQabM1fOJ2yZ1wI', 'CAADBAADYw4AAuf7rQYZUvpBdCk2pgI', 'CAADBAADhg4AAuf7rQbJl5Bat1xMsgI', 'CAADBAADiA4AAuf7rQb2C3BKd6Z8pgI', 'CAADBAADZg4AAuf7rQbJ4vrW-y-CPAI', 'CAADBQADKhgAAsZRxhWrNMZW8VO5PwI', 'CAADBQAD_RgAAsZRxhXU78dx1KWHswI', 'CAADBQADqBkAAsZRxhUZNMbd9XQk8gI', 'CAADBQADExIAAsZRxhVgT_7AMtFGlwI', 'CAADBQADyQ4AAsZRxhULL8-YqNW8hgI']
-lastcmd = {}
 cache = ImageCache()
-parse_data = {'commands':['/anime', '/hentai', '/loli', '/yuri', '/ecchi', '/neko', '/uncensored', '/wallpaper'], 'tags':['rating:s -loli', 'rating:e -loli', 'rating:s loli', 'yuri -loli', 'rating:q -loli', 'cat_ears -loli', 'uncensored -loli', 'wallpaper -loli'], 'ch_id': ['1', '2', '3', '4', '5', '6', '7', '8'], 'chan':['@anime_channel', '@hentai_channel', '@hentai_channel', '@yuri_channel', '@channel_ecchi', '@anime_channel', '@uncensored_channel', '@anime_channel'], 'items':['anime', 'hentai', 'loli', 'yuri', 'ecchi', 'neko', 'uncensored', 'wallpaper'], 'pages':[7658, 1527, 635, 252, 5622, 402, 367, 523]}
 
+CommandData = namedtuple('CommandData', ['command', 'tag', 'ch_id', 'chan', 'item', 'pages'])
+
+parse_data = {
+    'Anime': CommandData('/anime', 'rating:s -loli', '1', '@anime_channel', 'anime', 7658),
+    'Hentai (18+)': CommandData('/hentai', 'rating:e -loli', '2', '@hentai_channel', 'hentai', 1527),
+    'Yuri (18+)': CommandData('/yuri', 'yuri -loli', '4', '@uncensored_channel', 'yuri', 252),
+    'Ecchi (18+)': CommandData('/ecchi', 'rating:q -loli', '5', '@uncensored_channel', 'ecchi', 5622),
+    'Uncensored (18+)': CommandData('/uncensored', 'uncensored -loli', '7', '@uncensored_channel', 'uncensored', 367),
+    'Wallpaper': CommandData('/wallpaper', 'wallpaper -loli', '8', '@anime_channel', 'wallpaper', 523),
+    '/anime': CommandData('/anime', 'rating:s -loli', '1', '@anime_channel', 'anime', 7658),
+    '/hentai': CommandData('/hentai', 'rating:e -loli', '2', '@hentai_channel', 'hentai', 1527),
+    '/yuri': CommandData('/yuri', 'yuri -loli', '4', '@uncensored_channel', 'yuri', 252),
+    '/ecchi': CommandData('/ecchi', 'rating:q -loli', '5', '@uncensored_channel', 'ecchi', 5622),
+    '/uncensored': CommandData('/uncensored', 'uncensored -loli', '7', '@uncensored_channel', 'uncensored', 367),
+    '/wallpaper': CommandData('/wallpaper', 'wallpaper -loli', '8', '@anime_channel', 'wallpaper', 523),
+}
+
+itemset = set(parse_data.keys())
 callback_cb = CallbackData('post', 'function', 'data')
 
 class SQLiteMiddleware(BaseMiddleware):
@@ -68,107 +86,82 @@ class SQLiteMiddleware(BaseMiddleware):
       first_name = chat.from_user.first_name
       username = chat.from_user.username or ""
 
-      async with aiosqlite.connect('users.db') as db:
-        query = 'INSERT INTO commands(user_id, chat_id, first_name, username, command) VALUES(%s, %s, "%s", "%s", "%s")' % (user_id, chat_id, first_name, username, command)
-        await db.execute(query)
-        await db.commit()
+      if command!=None:
+	      async with aiosqlite.connect('users.db') as db:
+	        query = 'INSERT INTO commands(user_id, chat_id, first_name, username, command) VALUES(%s, %s, "%s", "%s", "%s")' % (user_id, chat_id, first_name, username, command)
+	        await db.execute(query)
+	        await db.commit()
 
       return data
 
 
 @dp.message_handler(commands=['users'])
 async def usercount_handler(message: types.Message):
-    db = await aiosqlite.connect('users.db')
-    cursor = await db.execute('SELECT * FROM commands')
-    await cursor.execute('SELECT COUNT(DISTINCT user_id) FROM commands')
-    result = await cursor.fetchone()
+    async with aiosqlite.connect('users.db') as db:
+        async with db.execute('SELECT COUNT(DISTINCT user_id) FROM commands') as cursor:
+            result = await cursor.fetchone()
     count = result[0]
     await message.answer(f"{count} users in the database.")
-    await cursor.close()
-    await db.close()
 
 @dp.message_handler(commands=["popular"])
 async def popularcommands_handler(message: types.Message):
-    db = await aiosqlite.connect('users.db')
-    cursor = await db.execute('SELECT * FROM commands')
-    await cursor.execute('SELECT command, COUNT(*) as count FROM commands GROUP BY command ORDER BY count DESC LIMIT 10')
-    results = await cursor.fetchall()
+    async with aiosqlite.connect('users.db') as db:
+        async with db.execute('SELECT command, COUNT(*) as count FROM commands GROUP BY command ORDER BY count DESC LIMIT 10') as cursor:
+            results = await cursor.fetchall()
     output = "Most popular commands:\n"
     for row in results:
         output += f"{row[0]} ({row[1]} uses)\n"
     await message.answer(output)
-    await cursor.close()
-    await db.close()
 
 @dp.message_handler(commands=['start', 'help'])
 async def start(message: types.Message):
-       s = message.text
-       s = s.split(' ', 1)
-       if len(s) !=1:
-              if s[1] != 'start':
-                     try:
-                            await record_user(chat_id)
-                     except:
-                            print("oops")
-                     await idd(message, tags='id:' + s[1])
-              else:
-                     keyboard_markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
-                     btns_text = ('Anime', 'Uncensored (18+)', 'Hentai (18+)')
-                     keyboard_markup.row(*(types.KeyboardButton(text) for text in btns_text))
-                     btns_text = ('Wallpaper', 'Ecchi (18+)', 'Yuri (18+)')
-                     keyboard_markup.row(*(types.KeyboardButton(text) for text in btns_text))
-                     await message.reply("Yoo!\nMy name is @anime_bot! I am your personal assistant in the anime world! Yoroshiku onegaishimasu!\n\nUse the keyboard below to navigate the menu.\n\nDeveloper: @ev3me", reply_markup=keyboard_markup)
-                     stick = random.randint(0, len(stickers) - 1)
-                     await message.answer_sticker(sticker = stickers[stick])
-       else:
-              try:
-                     keyboard_markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
-                     btns_text = ('Anime', 'Uncensored (18+)', 'Hentai (18+)')
-                     keyboard_markup.row(*(types.KeyboardButton(text) for text in btns_text))
-                     btns_text = ('Wallpaper', 'Ecchi (18+)', 'Yuri (18+)')
-                     keyboard_markup.row(*(types.KeyboardButton(text) for text in btns_text))
-                     await message.reply("Yoo!\nMy name is @anime_bot! I am your personal assistant in the anime world! Yoroshiku onegaishimasu!\n\nUse the keyboard below to navigate the menu.\n\nDeveloper: @ev3me", reply_markup=keyboard_markup)
-                     stick = random.randint(0, len(stickers) - 1)
-                     await message.answer_sticker(sticker = stickers[stick])
-              except Exception:
-                     traceback.print_exc()
+    if len(message.text.split()) == 1:
+        keyboard_markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
+        btns_text = ('Anime', 'Uncensored (18+)', 'Hentai (18+)', 'Wallpaper', 'Ecchi (18+)', 'Yuri (18+)')
+        keyboard_markup.add(*(types.KeyboardButton(text) for text in btns_text))
+        await message.answer("Yoo!\nMy name is @anime_bot! I am your personal assistant in the anime world! Yoroshiku onegaishimasu!\n\nUse the keyboard below to navigate the menu.\n\nDeveloper: @ev3me", reply_markup=keyboard_markup)
+        await message.answer_sticker(sticker=random.choice(stickers))
+    elif message.text.split()[1] != 'start':
+        await idd(message, tags='id:' + message.text.split()[1])
+    else:
+        await start(message)
+
 
 @dp.message_handler()
 async def all_msg_handler(message: types.Message):
-       itemlist=['Anime', 'Hentai (18+)', 'fdssdf','Yuri (18+)', 'Ecchi (18+)', 'hfdghgf','Uncensored (18+)', 'Wallpaper']
-       if message.text in itemlist:
-              ch_id = parse_data['ch_id'][itemlist.index(message.text)]
-              lastcmd[message.chat.id] = parse_data['commands'][itemlist.index(message.text)]
-              await parser(message, tags=parse_data['tags'][itemlist.index(message.text)], pages=100, chat_id=message.chat.id, ch_id=str(ch_id))
-       elif message.text in ['/anime', '/hentai', '/uncensored', '/ecchi', '/yuri', '/wallpaper']:
+    if message.text in itemset:
+        data = parse_data[message.text]
+        ch_id = data.ch_id
+        lastcmd[message.chat.id] = data.command
+        await parser(message, tags=data.tag, pages=100, chat_id=message.chat.id, ch_id=ch_id)
+    elif message.text in parse_data.values():
         await commands(message=message)
-       elif message.text in ['/anime@anime_bot', '/hentai@anime_bot', '/uncensored@anime_bot', '/ecchi@anime_bot', '/yuri@anime_bot', '/wallpaper@anime_bot']:
+    elif message.text in ['/anime@anime_bot', '/hentai@anime_bot', '/uncensored@anime_bot', '/ecchi@anime_bot', '/yuri@anime_bot', '/wallpaper@anime_bot']:
         await commands(message=message, tick=1)
 
 async def commands(message=None, chat_id=None, chan=None, data=None, tick=None):
-       source = message
-       chat_id = source.chat.id
-       vtext = message.text
-       if tick == 1:
+    source = message
+    chat_id = source.chat.id
+    vtext = message.text
+    if tick == 1:
         vtext = message.text.replace('@anime_bot', '')
-       if data == None:
-              data = vtext
-              if '@anime_bot' in data:
-                     data = data.replace('@anime_bot', '')
-              try:
-                     data = data.split(' ', 1)[0]
-              except:
-                     pass
-       c_id = parse_data['commands'].index(data)
+    if data is None:
+        data = vtext
+        if '@anime_bot' in data:
+            data = data.replace('@anime_bot', '')
+        try:
+            data = data.split(' ', 1)[0]
+        except:
+            pass
+    c_id = list(parse_data.keys()).index(data)
 
-       lastcmd[chat_id] = parse_data['commands'][c_id]
-       ch_id = parse_data['ch_id'][c_id]
+    lastcmd[chat_id] = parse_data[data].command
+    ch_id = parse_data[data].ch_id
 
-
-       if chan !=None:
-              await parser(source, tags=parse_data['tags'][c_id], pages=parse_data['pages'][c_id], chat_id=chat_id, info='Want More? Join %s' % chan, ch_id=str(ch_id))
-       else:
-              await parser(source, tags=parse_data['tags'][c_id], pages=parse_data['pages'][c_id], chat_id=chat_id, ch_id=str(ch_id))
+    if chan is not None:
+        await parser(source, tags=parse_data[data].tag, pages=parse_data[data].pages, chat_id=chat_id, info='Want More? Join %s' % chan, ch_id=str(ch_id))
+    else:
+        await parser(source, tags=parse_data[data].tag, pages=parse_data[data].pages, chat_id=chat_id, ch_id=str(ch_id))
 
 async def info_post(tags=None):
        client = Moebooru('yandere')
@@ -208,10 +201,6 @@ async def parser(message, tags, pages, chat_id, info=None, ch_id=None): #Usual p
        randomint = randint(1000, 10000000)
        await message.bot.send_chat_action(message.chat.id, ChatActions.UPLOAD_PHOTO)
        client = Moebooru('yandere')
-       try:
-          await record_user(chat_id)
-       except:
-              print("oops")
        try:
               randompage = randint(1, int(pages))
               data = cache.get(ch_id)
