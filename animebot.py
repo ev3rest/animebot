@@ -11,11 +11,12 @@ import random
 import urllib.request
 import os
 from random import randint
-#import aiosqlite
+from aiogram.dispatcher.middlewares import BaseMiddleware
+import aiosqlite
 
 logging.basicConfig(level=logging.INFO)
 
-API_TOKEN = '106653739:AAGgUS8FGWFwsxlf0JuCVfjdq4H5WvPN3eA'
+API_TOKEN = '106653739:AAHtJM59SDzq2SXPX8RBTn5IpBc-cIs5S48'
 
 class ImageCache:
     def __init__(self):
@@ -52,28 +53,52 @@ parse_data = {'commands':['/anime', '/hentai', '/loli', '/yuri', '/ecchi', '/nek
 
 callback_cb = CallbackData('post', 'function', 'data')
 
-async def record_user(chat_id):
-  pass
-       # async with aiosqlite.connect('bot.db') as db:
-       #        await db.execute("INSERT INTO chats (chat_id) VALUES (%s)" % (chat_id))
-       #        await db.commit()
+class SQLiteMiddleware(BaseMiddleware):
+  @staticmethod
+  async def on_process_update(update: types.Update, data: dict):
+      chat_id = None
+      if update.message:
+        chat = update.message
+        command = chat.text
+      elif update.callback_query:
+        chat = update.callback_query.message
+        command = update.callback_query.data
+      user_id = chat.from_user.id
+      chat_id = chat.chat.id
+      first_name = chat.from_user.first_name
+      username = chat.from_user.username or ""
 
-async def collect_users():
-    result = None
-    # async with aiosqlite.connect('bot.db') as db:
-    #     async with db.execute('SELECT * FROM chats') as cursor:
-    #         rows = await cursor.fetchall()
-    #         result = rows
-    #     await cursor.close()
-    return result
+      async with aiosqlite.connect('users.db') as db:
+        query = 'INSERT INTO commands(user_id, chat_id, first_name, username, command) VALUES(%s, %s, "%s", "%s", "%s")' % (user_id, chat_id, first_name, username, command)
+        await db.execute(query)
+        await db.commit()
+
+      return data
+
 
 @dp.message_handler(commands=['users'])
-async def users(message: types.Message):
-    result = await collect_users()
-    list_of_users = []
-    for i in result:
-        list_of_users.append(str(i[0]))
-    await message.reply(str(len(list_of_users)))
+async def usercount_handler(message: types.Message):
+    db = await aiosqlite.connect('users.db')
+    cursor = await db.execute('SELECT * FROM commands')
+    await cursor.execute('SELECT COUNT(DISTINCT user_id) FROM commands')
+    result = await cursor.fetchone()
+    count = result[0]
+    await message.answer(f"{count} users in the database.")
+    await cursor.close()
+    await db.close()
+
+@dp.message_handler(commands=["popular"])
+async def popularcommands_handler(message: types.Message):
+    db = await aiosqlite.connect('users.db')
+    cursor = await db.execute('SELECT * FROM commands')
+    await cursor.execute('SELECT command, COUNT(*) as count FROM commands GROUP BY command ORDER BY count DESC LIMIT 10')
+    results = await cursor.fetchall()
+    output = "Most popular commands:\n"
+    for row in results:
+        output += f"{row[0]} ({row[1]} uses)\n"
+    await message.answer(output)
+    await cursor.close()
+    await db.close()
 
 @dp.message_handler(commands=['start', 'help'])
 async def start(message: types.Message):
@@ -311,7 +336,6 @@ async def inline_function(inline_query: InlineQuery):
 
 async def on_startup(dp):
        await bot.set_webhook(WEBHOOK_URL)
-       # insert code here to run it after start
 
 async def on_shutdown(dp):
        logging.warning('Shutting down..')
@@ -327,6 +351,7 @@ async def on_shutdown(dp):
 
 
 if __name__ == '__main__':
+       dp.middleware.setup(SQLiteMiddleware())
        executor.start_webhook(
               dispatcher=dp,
               webhook_path=WEBHOOK_PATH,
