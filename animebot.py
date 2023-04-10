@@ -21,6 +21,8 @@ import aiosqlite
 from collections import namedtuple
 from aiogram.utils.markdown import escape_md
 from io import BytesIO
+import io
+import matplotlib.pyplot as plt
 
 logging.basicConfig(level=logging.INFO)
 
@@ -133,17 +135,20 @@ class SQLiteMiddleware(BaseMiddleware):
     @staticmethod
     async def on_process_update(update: types.Update, data: dict):
         chat_id = None
+        user_id = None
         chat = None
         if update.message:
             chat = update.message
+            user_id = update.message.from_user.id
+            chat_id = update.message.chat.id
             command = chat.text
         elif update.callback_query:
-            chat = update.callback_query.message
+            chat = update.callback_query
+            user_id = update.callback_query.from_user.id
+            chat_id = update.callback_query.message.chat.id
             command = update.callback_query.data
 
         if chat and chat.from_user:
-            user_id = chat.from_user.id
-            chat_id = chat.chat.id
             first_name = chat.from_user.first_name
             username = chat.from_user.username or ""
 
@@ -179,7 +184,6 @@ class CommandPermissionMiddleware(BaseMiddleware):
             await message.answer("You are not authorized to execute this command.")
             raise CancelHandler()
 
-
 @dp.message_handler(commands=['users'])
 async def usercount_handler(message: types.Message):
     async with aiosqlite.connect('users.db') as db:
@@ -191,10 +195,38 @@ async def usercount_handler(message: types.Message):
     if len(results) == 0:
         await message.answer("No users found in the database.")
         return
-    response = f"{user_count} users in the database\.\nTop users by command count:\n"
+    
+    # Create a bar chart of the top users by command count
+    fig1, ax1 = plt.subplots(figsize=(10, 6))
+    x = [row[1] for row in results]
+    y = [row[2] for row in results]
+    ax1.bar(x, y)
+    ax1.set_title('Top users by command count')
+    ax1.set_xlabel('User')
+    ax1.set_ylabel('Command count')
+    plt.xticks(rotation=45, ha='right', fontsize=8)
+    
+    # Create a pie chart of the total command count distribution
+    fig2, ax2 = plt.subplots(figsize=(10, 6))
+    labels = [f"{row[1]} ({row[2]})" for row in results]
+    sizes = [row[2] for row in results]
+    ax2.pie(sizes, labels=labels, autopct='%1.1f%%')
+    ax2.set_title('Total command count distribution')
+    
+    # Convert the charts to images and send them as an album with the response
+    buf1, buf2 = io.BytesIO(), io.BytesIO()
+    fig1.savefig(buf1, format='png')
+    fig2.savefig(buf2, format='png')
+    buf1.seek(0)
+    buf2.seek(0)
+    photo1 = types.InputFile(buf1, filename='chart1.png')
+    photo2 = types.InputFile(buf2, filename='chart2.png')
+
+    # Format the response with the user count and top users table
+    response = f"{user_count} users in the database\.\nTop users by command count:\n\n"
     for row in results:
         response += f"[{escape_md(row[1])}](tg://user?id={row[0]}): {row[2]} commands\n"
-    await message.answer(response, parse_mode=ParseMode.MARKDOWN_V2)
+    await message.answer_media_group([types.InputMediaPhoto(media=photo1, caption=response, parse_mode=ParseMode.MARKDOWN_V2), types.InputMediaPhoto(media=photo2)])
 
 
 @dp.message_handler(commands=["popular"])
@@ -203,11 +235,44 @@ async def popularcommands_handler(message: types.Message):
         async with db.execute(
                 'SELECT command, COUNT(*) as count FROM commands GROUP BY command ORDER BY count DESC LIMIT 10') as cursor:
             results = await cursor.fetchall()
-    output = "Most popular commands:\n"
+    
+    commands = [row[0] for row in results]
+    counts = [row[1] for row in results]
+    
+    # Bar graph
+    fig, ax = plt.subplots(figsize=(16,6))
+    bars = ax.bar(commands, counts, color='red')
+    ax.set_title('Most Popular Commands')
+    ax.set_xlabel('Commands')
+    ax.set_ylabel('Number of Uses')
+    
+    for i, bar in enumerate(bars):
+        ax.text(bar.get_x() + bar.get_width()/2.0, bar.get_height(), str(counts[i]), ha='center', va='bottom', fontsize=10)
+    
+    # Pie chart
+    fig2, ax2 = plt.subplots()
+    labels = [f"{command} ({count})" for command, count in zip(commands, counts)]
+    ax2.pie(counts, labels=labels, autopct='%1.1f%%')
+    ax2.set_title('Most Popular Commands')
+    
+    # Save images to bytes buffer
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png')
+    buf.seek(0)
+    bar_img = types.InputFile(buf, filename='bar.png')
+    
+    buf2 = io.BytesIO()
+    fig2.savefig(buf2, format='png')
+    buf2.seek(0)
+    pie_img = types.InputFile(buf2, filename='pie.png')
+    
+    output = "Most popular commands:\n\n"
     for row in results:
         output += f"{row[0]} ({row[1]} uses)\n"
-    await message.answer(output)
-
+    # Send images as an album
+    media = [types.InputMediaPhoto(bar_img, caption=output),
+             types.InputMediaPhoto(pie_img)]
+    await message.answer_media_group(media)
 
 @dp.message_handler(commands=['start', 'help'])
 async def start(message: types.Message):
@@ -215,10 +280,18 @@ async def start(message: types.Message):
         keyboard_markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
         btns_text = ('Anime', 'Uncensored (18+)', 'Hentai (18+)', 'Wallpaper', 'Ecchi (18+)', 'Yuri (18+)')
         keyboard_markup.add(*(types.KeyboardButton(text) for text in btns_text))
+
+        # Add inline button to subscribe to the updates channel
+        subscribe_btn = InlineKeyboardButton('Follow the updates', url='https://t.me/animebotupdates')
+        inline_keyboard = InlineKeyboardMarkup().add(subscribe_btn)
+
         await message.answer(
-            "Yoo!\nMy name is @anime_bot! I am your personal assistant in the anime world! Yoroshiku onegaishimasu!\n\nUse the keyboard below to navigate the menu.\n\nDeveloper: @ev3me",
+            "Yoo!\nMy name is @anime_bot! I am your personal assistant in the anime world! Yoroshiku onegaishimasu!\n\nUse the keyboard below to navigate the menu.\n\nUpdates Channel: @animebotupdates",
             reply_markup=keyboard_markup)
         await message.answer_sticker(sticker=random.choice(stickers))
+        await message.answer(
+            "Follow the bot updates channel: @animebotupdates",
+            reply_markup=inline_keyboard)
     elif message.text.split()[1] != 'start':
         await idd(message, tags='id:' + message.text.split()[1])
     else:
