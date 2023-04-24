@@ -13,7 +13,7 @@ Telegram-based bot. Uses **Danbooru** and **Moebooru** API to parse images.
 `python3 animebot.py`
 
 ## Support
-You can support project on https://paypal.me/ev3rest
+You can support project on https://ko-fi.com/anime_bot
 ## Credits
 Developer: [@ev3me](https://t.me/ev3me)
 Helper: [@disinterpreter](https://t.me/disinterpreter)
